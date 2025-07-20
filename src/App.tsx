@@ -9,6 +9,9 @@ import Footer from '@/components/layout/Footer'
 import Home from '@/pages/Home'
 import Login from '@/pages/auth/Login'
 import Signup from '@/pages/auth/Signup'
+import Doctors from '@/pages/Doctors'
+import AIDiagnosis from '@/pages/AIDiagnosis'
+import Drugs from '@/pages/Drugs'
 
 function App() {
   return (
@@ -38,9 +41,9 @@ function App() {
               />
               
               {/* Placeholder routes for other pages */}
-              <Route path="/ai-diagnosis" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">AI Diagnosis - Coming Soon</h1></div>} />
-              <Route path="/doctors" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Find Doctors - Coming Soon</h1></div>} />
-              <Route path="/drugs" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Drug Information - Coming Soon</h1></div>} />
+              <Route path="/ai-diagnosis" element={<AIDiagnosis />} />
+              <Route path="/doctors" element={<Doctors />} />
+              <Route path="/drugs" element={<Drugs />} />
               <Route path="/blog" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Blog - Coming Soon</h1></div>} />
               <Route path="/contact" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Contact - Coming Soon</h1></div>} />
               <Route path="/legal/*" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Legal Pages - Coming Soon</h1></div>} />
