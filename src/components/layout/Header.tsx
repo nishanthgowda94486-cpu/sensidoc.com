@@ -59,7 +59,7 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
-            {user.role === 'admin' && (
+            {user && user.role === 'admin' && (
               <Link to="/admin/dashboard">
                 <Button variant="outline" size="sm" className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100">
                   <Settings className="h-4 w-4 mr-2" />
@@ -98,7 +98,7 @@ const Header = () => {
                       <Settings className="h-4 w-4 mr-2" />
                       Settings
                     </Link>
-                    {user.role === 'admin' && (
+                    {user && user.role === 'admin' && (
                       <Link
                         to="/admin/dashboard"
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -114,7 +114,7 @@ const Header = () => {
                       <LogOut className="h-4 w-4 mr-2" />
                       Sign Out
                     </button>
-                    <div className="text-xs text-blue-600 capitalize">{user.role}</div>
+                    <div className="text-xs text-blue-600 capitalize">{user?.role}</div>
                   </div>
                 </div>
               </div>
