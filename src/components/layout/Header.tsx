@@ -1,27 +1,26 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useAuth } from '@/hooks/useAuth'
 import { 
   Menu, 
   X, 
   User, 
   LogOut, 
-  Settings,
-  Stethoscope,
-  Heart,
-  Shield
+  Settings, 
+  Shield, 
+  Heart
 } from 'lucide-react'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { user, signOut } = useAuth()
-  const navigate = useNavigate()
+  
+  // Temporary mock user for testing
+  const user = null
 
   const handleSignOut = async () => {
-    await signOut()
-    navigate('/')
+    // Mock sign out
+    console.log('Sign out clicked')
   }
 
   const navItems = [
