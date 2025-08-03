@@ -97,17 +97,17 @@ const Header = () => {
                       <Settings className="h-4 w-4 mr-2" />
                       Settings
                     </Link>
+                    {user.role === 'admin' && (
+                      <Link
+                        to="/admin/dashboard"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Panel
+                      </Link>
+                    )}
                     <button
                       onClick={handleSignOut}
-                  {user.role === 'admin' && (
-                    <Link
-                      to="/admin/dashboard"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin Panel
-                    </Link>
-                  )}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <LogOut className="h-4 w-4 mr-2" />

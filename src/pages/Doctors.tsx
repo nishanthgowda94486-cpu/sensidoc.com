@@ -237,123 +237,122 @@ const Doctors = () => {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               </div>
             ) : (
-            {/* Doctors Grid */}
-            <div className="space-y-6">
-              {doctors.map((doctor) => (
-                <Card key={doctor.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row gap-6">
-                      {/* Doctor Info */}
-                      <div className="flex items-start space-x-4 flex-1">
-                        <div className="relative">
-                          <Avatar className="h-20 w-20">
-                            <AvatarImage src={doctor.profile_image} alt={doctor.profile?.full_name} />
-                            <AvatarFallback>{doctor.profile?.full_name?.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
-                          </Avatar>
-                          {doctor.is_online && (
-                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full flex items-center justify-center">
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
+              <div className="space-y-6">
+                {doctors.map((doctor) => (
+                  <Card key={doctor.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {/* Doctor Info */}
+                        <div className="flex items-start space-x-4 flex-1">
+                          <div className="relative">
+                            <Avatar className="h-20 w-20">
+                              <AvatarImage src={doctor.profile_image} alt={doctor.profile?.full_name} />
+                              <AvatarFallback>{doctor.profile?.full_name?.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+                            </Avatar>
+                            {doctor.is_online && (
+                              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h3 className="text-xl font-semibold text-gray-900">Dr. {doctor.profile?.full_name}</h3>
+                              {doctor.is_verified && (
+                                <Badge variant="success" className="text-xs">Verified</Badge>
+                              )}
+                              {doctor.is_online && (
+                                <Badge className="text-xs bg-green-100 text-green-700">Online</Badge>
+                              )}
                             </div>
-                          )}
+
+                            <div className="space-y-2">
+                              <div className="flex items-center text-gray-600">
+                                <Stethoscope className="h-4 w-4 mr-2" />
+                                <span>{doctor.specialization?.name} • {doctor.experience_years} years exp.</span>
+                              </div>
+
+                              <div className="flex items-center text-gray-600">
+                                <MapPin className="h-4 w-4 mr-2" />
+                                <span>{doctor.profile?.city || 'Location not specified'}</span>
+                              </div>
+
+                              <div className="flex items-center text-gray-600">
+                                <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                                <span>{doctor.rating}/5 ({doctor.total_consultations} consultations)</span>
+                              </div>
+
+                              <div className="flex items-center text-gray-600">
+                                <Clock className="h-4 w-4 mr-2" />
+                                <span>Available for consultation</span>
+                              </div>
+                            </div>
+
+                            <p className="text-gray-600 mt-3 text-sm">{doctor.bio || 'No bio available'}</p>
+
+                            <div className="flex flex-wrap gap-1 mt-3">
+                              {doctor.languages?.map((lang: string) => (
+                                <Badge key={lang} variant="outline" className="text-xs">
+                                  {lang}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
                         </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <h3 className="text-xl font-semibold text-gray-900">Dr. {doctor.profile?.full_name}</h3>
-                            {doctor.is_verified && (
-                              <Badge variant="success" className="text-xs">Verified</Badge>
-                            )}
-                            {doctor.is_online && (
-                              <Badge className="text-xs bg-green-100 text-green-700">Online</Badge>
-                            )}
+                        {/* Consultation Options */}
+                        <div className="md:w-64 space-y-4">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-gray-900">₹{doctor.consultation_fee}</div>
+                            <div className="text-sm text-gray-600">per consultation</div>
                           </div>
 
                           <div className="space-y-2">
-                            <div className="flex items-center text-gray-600">
-                              <Stethoscope className="h-4 w-4 mr-2" />
-                              <span>{doctor.specialization?.name} • {doctor.experience_years} years exp.</span>
-                            </div>
+                            <Button
+                              onClick={() => handleBookConsultation(doctor.id, 'chat')}
+                              className="w-full"
+                              variant="outline"
+                              disabled={!doctor.is_online}
+                            >
+                              <MessageCircle className="h-4 w-4 mr-2" />
+                              Chat Now
+                            </Button>
 
-                            <div className="flex items-center text-gray-600">
-                              <MapPin className="h-4 w-4 mr-2" />
-                              <span>{doctor.profile?.city || 'Location not specified'}</span>
-                            </div>
+                            <Button
+                              onClick={() => handleBookConsultation(doctor.id, 'video')}
+                              className="w-full"
+                              variant="outline"
+                              disabled={!doctor.is_online}
+                            >
+                              <Video className="h-4 w-4 mr-2" />
+                              Video Call
+                            </Button>
 
-                            <div className="flex items-center text-gray-600">
-                              <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                              <span>{doctor.rating}/5 ({doctor.total_consultations} consultations)</span>
-                            </div>
-
-                            <div className="flex items-center text-gray-600">
-                              <Clock className="h-4 w-4 mr-2" />
-                              <span>Available for consultation</span>
-                            </div>
+                            <Button
+                              onClick={() => handleBookConsultation(doctor, 'visit')}
+                              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                            >
+                              <Phone className="h-4 w-4 mr-2" />
+                              Book Consultation
+                            </Button>
                           </div>
 
-                          <p className="text-gray-600 mt-3 text-sm">{doctor.bio || 'No bio available'}</p>
-
-                          <div className="flex flex-wrap gap-1 mt-3">
-                            {doctor.languages?.map((lang: string) => (
-                              <Badge key={lang} variant="outline" className="text-xs">
-                                {lang}
-                              </Badge>
-                            ))}
-                          </div>
+                          <Link to={`/doctors/${doctor.id}`}>
+                            <Button
+                              variant="ghost"
+                              className="w-full text-blue-600 hover:text-blue-700"
+                            >
+                              <Calendar className="h-4 w-4 mr-2" />
+                              View Profile
+                            </Button>
+                          </Link>
                         </div>
                       </div>
-
-                      {/* Consultation Options */}
-                      <div className="md:w-64 space-y-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-gray-900">₹{doctor.consultation_fee}</div>
-                          <div className="text-sm text-gray-600">per consultation</div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Button
-                            onClick={() => handleBookConsultation(doctor.id, 'chat')}
-                            className="w-full"
-                            variant="outline"
-                            disabled={!doctor.is_online}
-                          >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            Chat Now
-                          </Button>
-
-                          <Button
-                            onClick={() => handleBookConsultation(doctor.id, 'video')}
-                            className="w-full"
-                            variant="outline"
-                            disabled={!doctor.is_online}
-                          >
-                            <Video className="h-4 w-4 mr-2" />
-                            Video Call
-                          </Button>
-
-                          <Button
-                            onClick={() => handleBookConsultation(doctor, 'visit')}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                          >
-                            <Phone className="h-4 w-4 mr-2" />
-                            Book Consultation
-                          </Button>
-                        </div>
-
-                        <Link to={`/doctors/${doctor.id}`}>
-                          <Button
-                            variant="ghost"
-                            className="w-full text-blue-600 hover:text-blue-700"
-                          >
-                            <Calendar className="h-4 w-4 mr-2" />
-                            View Profile
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
 
             {/* No Results */}
@@ -466,4 +465,4 @@ const Doctors = () => {
   )
 }
 
-export default Doctors
+export default Doctors 
