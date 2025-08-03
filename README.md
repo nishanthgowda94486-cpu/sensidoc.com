@@ -1,273 +1,292 @@
-# SensiDoc - Healthcare Platform
+# SensiDoc - Complete Healthcare Platform
 
-A comprehensive healthcare platform built with React, TypeScript, and Supabase that provides AI-powered medical diagnosis, doctor consultations, and health record management.
+SensiDoc is a comprehensive healthcare platform that provides AI-powered diagnosis, doctor appointment booking, drug information, and health record management. Built with modern technologies and a focus on user experience and security.
 
-## 🚀 Features
+## 🏥 Features
 
 ### Core Features
-- **AI Diagnosis**: Get instant medical diagnosis using advanced AI technology
-- **Doctor Consultations**: Chat, video call, or visit doctors in person
-- **Drug Information**: Search for drug details, interactions, and side effects
+- **AI-Powered Diagnosis**: Preliminary health assessments using advanced AI algorithms
+- **Doctor Management**: Find, book, and manage appointments with verified healthcare providers
+- **Drug Information**: Comprehensive drug database with interactions and side effects
 - **Health Records**: Secure storage and management of medical records
-- **Membership Plans**: Premium features and unlimited access
+- **Blog & Education**: Health articles and educational content
+- **Contact & Support**: Multiple channels for customer support
 
-### User Roles
-- **Patients**: Access all healthcare services, manage health records
-- **Doctors**: Provide consultations, manage patient records, set availability
-- **Admin**: Manage users, doctors, content, and platform analytics
+### User Management
+- **Multi-Role System**: Patients, Doctors, and Administrators
+- **Authentication**: Secure login/signup with JWT tokens
+- **Profile Management**: Complete user profile and preference management
+- **Appointment Scheduling**: Real-time appointment booking and management
 
-### UI/UX Features
-- **Responsive Design**: Mobile-first approach with beautiful UI
-- **Modern Components**: Built with shadcn/ui and Tailwind CSS
-- **Accessibility**: WCAG compliant with proper ARIA labels
-- **Performance**: Optimized loading and smooth animations
+### Security & Compliance
+- **HIPAA Compliant**: Full compliance with healthcare privacy regulations
+- **Data Encryption**: End-to-end encryption for all sensitive data
+- **Access Controls**: Role-based access control system
+- **Audit Logging**: Comprehensive activity tracking
 
-## 🛠️ Tech Stack
+## 🏗️ Architecture
 
 ### Frontend
-- **React 18** with TypeScript
-- **Vite** for fast development and building
-- **Tailwind CSS** for styling
-- **shadcn/ui** for UI components
-- **Lucide React** for icons
-- **React Router** for navigation
-- **React Hook Form** for form handling
+- **Framework**: React 18 with TypeScript
+- **Styling**: Tailwind CSS with Radix UI components
+- **Routing**: React Router DOM
+- **State Management**: React Hooks and Context API
+- **Build Tool**: Vite for fast development and building
 
-### Backend & Database
-- **Supabase** for authentication and database
-- **PostgreSQL** database with Row Level Security
-- **Real-time subscriptions** for live updates
+### Backend
+- **Runtime**: Node.js with Express.js
+- **Language**: TypeScript for type safety
+- **Database**: Supabase (PostgreSQL) with real-time capabilities
+- **Authentication**: JWT with bcrypt password hashing
+- **Email**: Nodemailer for transactional emails
+- **AI Integration**: OpenAI API for diagnosis features
+- **Documentation**: Swagger/OpenAPI for API documentation
 
-### AI & APIs
-- **OpenAI GPT** for text-based diagnosis
-- **Google Gemini** for image analysis
-- **Custom API endpoints** for healthcare services
+### Infrastructure
+- **Database**: Supabase cloud PostgreSQL
+- **File Storage**: Supabase Storage
+- **Authentication**: Supabase Auth
+- **Real-time**: Supabase real-time subscriptions
+- **Security**: Helmet, CORS, rate limiting
 
-## 📦 Installation
+## 📁 Project Structure
+
+```
+sensidoc/
+├── src/                          # Frontend source code
+│   ├── components/               # Reusable UI components
+│   │   ├── ui/                  # Base UI components (Radix UI)
+│   │   ├── layout/              # Layout components (Header, Footer)
+│   │   └── home/                # Home page components
+│   ├── pages/                   # Page components
+│   │   ├── auth/                # Authentication pages
+│   │   ├── admin/               # Admin dashboard pages
+│   │   ├── doctor/              # Doctor dashboard pages
+│   │   └── legal/               # Legal pages (Terms, Privacy)
+│   ├── lib/                     # Utility functions
+│   └── types/                   # TypeScript type definitions
+├── backend/                     # Backend source code
+│   ├── src/
+│   │   ├── controllers/         # Request handlers
+│   │   ├── middleware/          # Express middleware
+│   │   ├── routes/              # API route definitions
+│   │   ├── services/            # Business logic services
+│   │   ├── config/              # Configuration files
+│   │   └── types/               # TypeScript type definitions
+│   └── package.json
+├── public/                      # Static assets
+└── package.json                 # Frontend dependencies
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
+- OpenAI API key (for AI features)
+
+### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/your-username/sensidoc.git
    cd sensidoc
    ```
 
-2. **Install dependencies**
+2. **Install frontend dependencies**
    ```bash
    npm install
    ```
 
-3. **Set up environment variables**
+3. **Install backend dependencies**
    ```bash
-   cp .env.example .env
+   cd backend
+   npm install
+   cd ..
    ```
-   Fill in your Supabase credentials and API keys.
 
-4. **Set up Supabase**
-   - Create a new Supabase project
-   - Run the database migrations (see Database Setup section)
-   - Configure authentication settings
+4. **Environment Setup**
+   
+   Create `.env` file in the root directory:
+   ```env
+   # Supabase Configuration
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   
+   # Backend Configuration
+   PORT=3001
+   NODE_ENV=development
+   
+   # OpenAI Configuration
+   OPENAI_API_KEY=your_openai_api_key
+   
+   # Email Configuration
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your_email@gmail.com
+   SMTP_PASS=your_email_password
+   
+   # JWT Secret
+   JWT_SECRET=your_jwt_secret_key
+   ```
 
-5. **Start development server**
+   Create `.env` file in the backend directory:
+   ```env
+   # Database
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_SERVICE_KEY=your_supabase_service_key
+   
+   # Server
+   PORT=3001
+   NODE_ENV=development
+   
+   # OpenAI
+   OPENAI_API_KEY=your_openai_api_key
+   
+   # Email
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your_email@gmail.com
+   SMTP_PASS=your_email_password
+   
+   # JWT
+   JWT_SECRET=your_jwt_secret_key
+   ```
+
+5. **Database Setup**
+   
+   Run the database migrations:
+   ```bash
+   cd backend
+   npm run migrate
+   npm run seed
+   ```
+
+6. **Start Development Servers**
+
+   Frontend (in root directory):
    ```bash
    npm run dev
    ```
 
-## 🗄️ Database Setup
+   Backend (in backend directory):
+   ```bash
+   npm run dev
+   ```
 
-### Required Tables
+7. **Access the Application**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:3001
+   - API Documentation: http://localhost:3001/api-docs
 
-Create these tables in your Supabase database:
+## 📚 API Documentation
 
-```sql
--- Users table (extends Supabase auth.users)
-CREATE TABLE users (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  full_name TEXT NOT NULL,
-  phone TEXT,
-  role TEXT CHECK (role IN ('patient', 'doctor', 'admin')) NOT NULL DEFAULT 'patient',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+The API documentation is available at `/api-docs` when the backend server is running. It includes:
 
--- Doctors table
-CREATE TABLE doctors (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  specialization TEXT NOT NULL,
-  experience_years INTEGER NOT NULL,
-  qualification TEXT NOT NULL,
-  license_number TEXT UNIQUE NOT NULL,
-  consultation_fee DECIMAL(10,2) DEFAULT 0,
-  is_verified BOOLEAN DEFAULT FALSE,
-  is_online BOOLEAN DEFAULT FALSE,
-  city TEXT NOT NULL,
-  hospital_name TEXT,
-  bio TEXT,
-  rating DECIMAL(3,2) DEFAULT 0,
-  total_consultations INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Bookings table
-CREATE TABLE bookings (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  patient_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  doctor_id UUID REFERENCES doctors(id) ON DELETE CASCADE,
-  appointment_date DATE NOT NULL,
-  appointment_time TIME NOT NULL,
-  consultation_type TEXT CHECK (consultation_type IN ('chat', 'video', 'visit')) NOT NULL,
-  status TEXT CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')) DEFAULT 'pending',
-  symptoms TEXT,
-  notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Health Records table
-CREATE TABLE health_records (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  patient_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  doctor_id UUID REFERENCES doctors(id),
-  title TEXT NOT NULL,
-  description TEXT NOT NULL,
-  diagnosis TEXT,
-  prescription TEXT,
-  test_results TEXT,
-  attachments TEXT[],
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### Row Level Security (RLS)
-
-Enable RLS and create policies:
-
-```sql
--- Enable RLS
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE doctors ENABLE ROW LEVEL SECURITY;
-ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE health_records ENABLE ROW LEVEL SECURITY;
-
--- Users policies
-CREATE POLICY "Users can read own data" ON users FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own data" ON users FOR UPDATE USING (auth.uid() = id);
-
--- Doctors policies
-CREATE POLICY "Anyone can read verified doctors" ON doctors FOR SELECT USING (is_verified = true);
-CREATE POLICY "Doctors can update own profile" ON doctors FOR UPDATE USING (user_id = auth.uid());
-
--- Bookings policies
-CREATE POLICY "Users can read own bookings" ON bookings FOR SELECT USING (
-  patient_id = auth.uid() OR 
-  doctor_id IN (SELECT id FROM doctors WHERE user_id = auth.uid())
-);
-
--- Health records policies
-CREATE POLICY "Patients can read own records" ON health_records FOR SELECT USING (patient_id = auth.uid());
-CREATE POLICY "Doctors can read patient records" ON health_records FOR SELECT USING (
-  doctor_id IN (SELECT id FROM doctors WHERE user_id = auth.uid())
-);
-```
-
-## 🔧 Configuration
-
-### Supabase Setup
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Get your project URL and anon key
-3. Configure authentication providers if needed
-4. Set up the database schema using the SQL above
-
-### Environment Variables
-```env
-VITE_SUPABASE_URL=your-supabase-project-url
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-VITE_API_URL=your-backend-api-url
-```
-
-## 🚀 Deployment
-
-### Frontend (Vercel)
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
-
-### Backend (Render/Railway)
-1. Deploy your backend API to Render or Railway
-2. Set environment variables for API keys
-3. Update VITE_API_URL to point to your deployed backend
-
-## 📱 Features Overview
-
-### Home Page
-- Hero section with call-to-action
-- Rotating ad banners
-- How to get started guide
-- Services overview
-- Why choose us section
-- Partner logos
-- FAQ section
-
-### Authentication
-- Role-based signup (Patient/Doctor)
-- Secure login with JWT
-- Password reset functionality
-- Admin login portal
-
-### AI Diagnosis
-- Text-based symptom analysis
-- Image upload for prescription analysis
-- Usage limits for free users
-- Upgrade prompts for premium features
-
-### Doctor Consultations
-- Browse available doctors
-- Filter by specialization and location
-- Book appointments
-- Chat, video, or in-person consultations
-
-### Health Records
-- Secure document storage
-- Prescription management
-- Test results tracking
-- Doctor notes and diagnoses
-
-### Admin Dashboard
+- Authentication endpoints
 - User management
-- Doctor verification
-- Platform analytics
-- Content management
+- Doctor and appointment management
+- AI diagnosis endpoints
+- Drug information endpoints
+- Blog and contact management
+
+## 🔧 Available Scripts
+
+### Frontend
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+### Backend
+- `npm run dev` - Start development server with nodemon
+- `npm run build` - Build TypeScript to JavaScript
+- `npm start` - Start production server
+- `npm run migrate` - Run database migrations
+- `npm run seed` - Seed database with sample data
+
+## 🛡️ Security Features
+
+- **Authentication**: JWT-based authentication with refresh tokens
+- **Authorization**: Role-based access control (Patient, Doctor, Admin)
+- **Data Protection**: HIPAA-compliant data handling
+- **Input Validation**: Comprehensive input sanitization and validation
+- **Rate Limiting**: API rate limiting to prevent abuse
+- **CORS**: Configured CORS policies
+- **Helmet**: Security headers middleware
+
+## 🧪 Testing
+
+```bash
+# Frontend tests
+npm run test
+
+# Backend tests
+cd backend
+npm run test
+```
+
+## 📦 Deployment
+
+### Frontend Deployment
+The frontend can be deployed to any static hosting service:
+
+```bash
+npm run build
+```
+
+### Backend Deployment
+The backend can be deployed to platforms like:
+- Heroku
+- Railway
+- DigitalOcean App Platform
+- AWS Elastic Beanstalk
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-For support, email support@sensidoc.com or join our Discord community.
+For support and questions:
+- Email: support@sensidoc.com
+- Phone: +1 (555) 123-4567
+- Documentation: [docs.sensidoc.com](https://docs.sensidoc.com)
 
-## 🔮 Roadmap
+## 🙏 Acknowledgments
 
-- [ ] Mobile app (React Native)
-- [ ] Video calling integration
-- [ ] Payment gateway integration
-- [ ] Multi-language support
-- [ ] Advanced AI features
-- [ ] Telemedicine compliance
-- [ ] Insurance integration
-- [ ] Pharmacy partnerships
+- [Supabase](https://supabase.com) for the backend infrastructure
+- [OpenAI](https://openai.com) for AI capabilities
+- [Radix UI](https://radix-ui.com) for accessible UI components
+- [Tailwind CSS](https://tailwindcss.com) for styling
+- [Vite](https://vitejs.dev) for the build tool
+
+## 📊 Project Status
+
+- ✅ Core Features Implemented
+- ✅ Authentication System
+- ✅ AI Diagnosis Integration
+- ✅ Doctor Management
+- ✅ Drug Information System
+- ✅ Blog & Contact Pages
+- ✅ Legal Pages (Terms, Privacy)
+- ✅ Admin Dashboard
+- ✅ Doctor Dashboard
+- ✅ Responsive Design
+- ✅ Security Implementation
+- 🔄 Testing Coverage (In Progress)
+- 🔄 Performance Optimization (In Progress)
+- 🔄 Mobile App (Planned)
 
 ---
 
-Built with ❤️ by the SensiDoc team
+**SensiDoc** - Your trusted healthcare companion. 🏥💙

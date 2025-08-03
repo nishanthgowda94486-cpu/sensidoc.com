@@ -10,6 +10,10 @@ import Signup from '@/pages/auth/Signup'
 import Doctors from '@/pages/Doctors'
 import AIDiagnosis from '@/pages/AIDiagnosis'
 import Drugs from '@/pages/Drugs'
+import Blog from '@/pages/Blog'
+import Contact from '@/pages/Contact'
+import TermsOfService from '@/pages/legal/TermsOfService'
+import PrivacyPolicy from '@/pages/legal/PrivacyPolicy'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
 import DoctorDashboard from '@/pages/doctor/DoctorDashboard'
 
@@ -28,9 +32,10 @@ function App() {
             <Route path="/drugs" element={<Drugs />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-            <Route path="/blog" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Blog - Coming Soon</h1></div>} />
-            <Route path="/contact" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Contact - Coming Soon</h1></div>} />
-            <Route path="/legal/*" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Legal Pages - Coming Soon</h1></div>} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/legal/terms" element={<TermsOfService />} />
+            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
           </Routes>
         </main>
         <Footer />
