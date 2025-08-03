@@ -10,7 +10,8 @@ import {
   LogOut, 
   Settings,
   Stethoscope,
-  Heart
+  Heart,
+  Shield
 } from 'lucide-react'
 
 const Header = () => {
@@ -57,15 +58,15 @@ const Header = () => {
               >
                 {item.name}
               </Link>
-              {user.role === 'admin' && (
-                <Link to="/admin/dashboard">
-                  <Button variant="outline" size="sm" className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Admin Panel
-                  </Button>
-                </Link>
-              )}
             ))}
+            {user.role === 'admin' && (
+              <Link to="/admin/dashboard">
+                <Button variant="outline" size="sm" className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Admin Panel
+                </Button>
+              </Link>
+            )}
           </nav>
 
           {/* User Menu */}
