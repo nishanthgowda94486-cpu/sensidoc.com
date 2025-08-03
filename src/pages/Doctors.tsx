@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useAuth } from '@/hooks/useAuth'
 import { 
   Search, 
   Filter, 
@@ -21,151 +23,103 @@ import {
   Bone,
   Baby
 } from 'lucide-react'
-
-// Mock doctors data
-const mockDoctors = [
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    specialization: "Cardiology",
-    experience: 12,
-    rating: 4.9,
-    consultationFee: 75,
-    isOnline: true,
-    isVerified: true,
-    image: "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=300",
-    location: "New York, NY",
-    languages: ["English", "Spanish"],
-    nextAvailable: "Today 2:00 PM",
-    totalConsultations: 1250,
-    bio: "Experienced cardiologist specializing in heart disease prevention and treatment."
-  },
-  {
-    id: 2,
-    name: "Dr. Michael Chen",
-    specialization: "Dermatology",
-    experience: 8,
-    rating: 4.8,
-    consultationFee: 60,
-    isOnline: true,
-    isVerified: true,
-    image: "https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=300",
-    location: "Los Angeles, CA",
-    languages: ["English", "Mandarin"],
-    nextAvailable: "Today 3:30 PM",
-    totalConsultations: 890,
-    bio: "Board-certified dermatologist with expertise in skin cancer detection and cosmetic procedures."
-  },
-  {
-    id: 3,
-    name: "Dr. Emily Rodriguez",
-    specialization: "Pediatrics",
-    experience: 15,
-    rating: 4.9,
-    consultationFee: 65,
-    isOnline: false,
-    isVerified: true,
-    image: "https://images.pexels.com/photos/5327921/pexels-photo-5327921.jpeg?auto=compress&cs=tinysrgb&w=300",
-    location: "Chicago, IL",
-    languages: ["English", "Spanish"],
-    nextAvailable: "Tomorrow 9:00 AM",
-    totalConsultations: 2100,
-    bio: "Pediatric specialist with focus on child development and preventive care."
-  },
-  {
-    id: 4,
-    name: "Dr. James Wilson",
-    specialization: "Neurology",
-    experience: 20,
-    rating: 4.7,
-    consultationFee: 90,
-    isOnline: true,
-    isVerified: true,
-    image: "https://images.pexels.com/photos/5327580/pexels-photo-5327580.jpeg?auto=compress&cs=tinysrgb&w=300",
-    location: "Boston, MA",
-    languages: ["English"],
-    nextAvailable: "Today 4:00 PM",
-    totalConsultations: 1680,
-    bio: "Neurologist specializing in brain disorders, stroke prevention, and headache management."
-  },
-  {
-    id: 5,
-    name: "Dr. Lisa Thompson",
-    specialization: "Ophthalmology",
-    experience: 10,
-    rating: 4.8,
-    consultationFee: 70,
-    isOnline: false,
-    isVerified: true,
-    image: "https://images.pexels.com/photos/5327647/pexels-photo-5327647.jpeg?auto=compress&cs=tinysrgb&w=300",
-    location: "Miami, FL",
-    languages: ["English", "Portuguese"],
-    nextAvailable: "Tomorrow 11:00 AM",
-    totalConsultations: 950,
-    bio: "Eye specialist with expertise in vision correction and eye disease treatment."
-  },
-  {
-    id: 6,
-    name: "Dr. Robert Kim",
-    specialization: "Orthopedics",
-    experience: 14,
-    rating: 4.6,
-    consultationFee: 80,
-    isOnline: true,
-    isVerified: true,
-    image: "https://images.pexels.com/photos/5327532/pexels-photo-5327532.jpeg?auto=compress&cs=tinysrgb&w=300",
-    location: "Seattle, WA",
-    languages: ["English", "Korean"],
-    nextAvailable: "Today 5:30 PM",
-    totalConsultations: 1340,
-    bio: "Orthopedic surgeon specializing in joint replacement and sports medicine."
-  }
-]
-
-const specializations = [
-  { name: "All Specialties", icon: Stethoscope, count: 6 },
-  { name: "Cardiology", icon: Heart, count: 1 },
-  { name: "Dermatology", icon: Eye, count: 1 },
-  { name: "Pediatrics", icon: Baby, count: 1 },
-  { name: "Neurology", icon: Brain, count: 1 },
-  { name: "Ophthalmology", icon: Eye, count: 1 },
-  { name: "Orthopedics", icon: Bone, count: 1 }
-]
+import { getDoctors, getSpecializations, createAppointment } from '@/lib/supabase'
 
 const Doctors = () => {
+  const { profile } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedSpecialty, setSelectedSpecialty] = useState('All Specialties')
+  const [selectedSpecialty, setSelectedSpecialty] = useState('')
   const [showOnlineOnly, setShowOnlineOnly] = useState(false)
-  const [filteredDoctors, setFilteredDoctors] = useState(mockDoctors)
+  const [doctors, setDoctors] = useState<any[]>([])
+  const [specializations, setSpecializations] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedDoctor, setSelectedDoctor] = useState<any>(null)
+  const [bookingData, setBookingData] = useState({
+    appointment_date: '',
+    appointment_time: '',
+    consultation_type: 'chat' as 'chat' | 'video' | 'visit',
+    symptoms: ''
+  })
 
   useEffect(() => {
-    let filtered = mockDoctors
+    loadDoctors()
+    loadSpecializations()
+  }, [])
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(doctor => 
-        doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doctor.location.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
-
-    // Filter by specialty
-    if (selectedSpecialty !== 'All Specialties') {
-      filtered = filtered.filter(doctor => doctor.specialization === selectedSpecialty)
-    }
-
-    // Filter by online status
-    if (showOnlineOnly) {
-      filtered = filtered.filter(doctor => doctor.isOnline)
-    }
-
-    setFilteredDoctors(filtered)
+  useEffect(() => {
+    loadDoctors()
   }, [searchTerm, selectedSpecialty, showOnlineOnly])
 
-  const handleBookConsultation = (doctorId: number, type: 'chat' | 'video' | 'call') => {
-    // This would typically navigate to booking page or open booking modal
-    console.log(`Booking ${type} consultation with doctor ${doctorId}`)
+  const loadDoctors = async () => {
+    try {
+      const filters: any = {}
+      if (selectedSpecialty) filters.specialization_id = selectedSpecialty
+      if (showOnlineOnly) filters.is_online = true
+      
+      const { data } = await getDoctors(filters)
+      let filteredData = data || []
+      
+      if (searchTerm) {
+        filteredData = filteredData.filter((doctor: any) =>
+          doctor.profile?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          doctor.specialization?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          doctor.profile?.city?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      }
+      
+      setDoctors(filteredData)
+    } catch (error) {
+      console.error('Error loading doctors:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadSpecializations = async () => {
+    try {
+      const { data } = await getSpecializations()
+      setSpecializations(data || [])
+    } catch (error) {
+      console.error('Error loading specializations:', error)
+    }
+  }
+
+  const handleBookConsultation = (doctor: any, type: 'chat' | 'video' | 'visit') => {
+    if (!profile) {
+      alert('Please login to book an appointment')
+      return
+    }
+    setSelectedDoctor(doctor)
+    setBookingData({ ...bookingData, consultation_type: type })
+  }
+
+  const handleBookAppointment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!profile || !selectedDoctor) return
+
+    try {
+      await createAppointment({
+        patient_id: profile.id,
+        doctor_id: selectedDoctor.id,
+        appointment_date: bookingData.appointment_date,
+        appointment_time: bookingData.appointment_time,
+        consultation_type: bookingData.consultation_type,
+        symptoms: bookingData.symptoms,
+        consultation_fee: selectedDoctor.consultation_fee
+      })
+      
+      alert('Appointment booked successfully!')
+      setSelectedDoctor(null)
+      setBookingData({
+        appointment_date: '',
+        appointment_time: '',
+        consultation_type: 'chat',
+        symptoms: ''
+      })
+    } catch (error) {
+      console.error('Error booking appointment:', error)
+      alert('Failed to book appointment. Please try again.')
+    }
   }
 
   return (
@@ -226,23 +180,36 @@ const Doctors = () => {
                 <div>
                   <label className="text-sm font-medium mb-3 block">Specializations</label>
                   <div className="space-y-2">
+                    <button
+                      onClick={() => setSelectedSpecialty('')}
+                      className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors ${
+                        selectedSpecialty === ''
+                          ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <Stethoscope className="h-4 w-4 mr-2" />
+                        <span className="text-sm">All Specialties</span>
+                      </div>
+                      <span className="text-xs bg-gray-200 px-2 py-1 rounded-full">
+                        {doctors.length}
+                      </span>
+                    </button>
                     {specializations.map((specialty) => (
                       <button
-                        key={specialty.name}
-                        onClick={() => setSelectedSpecialty(specialty.name)}
+                        key={specialty.id}
+                        onClick={() => setSelectedSpecialty(specialty.id)}
                         className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors ${
-                          selectedSpecialty === specialty.name
+                          selectedSpecialty === specialty.id
                             ? 'bg-blue-100 text-blue-700 border border-blue-200'
                             : 'hover:bg-gray-100'
                         }`}
                       >
                         <div className="flex items-center">
-                          <specialty.icon className="h-4 w-4 mr-2" />
+                          <span className="text-lg mr-2">{specialty.icon || '🩺'}</span>
                           <span className="text-sm">{specialty.name}</span>
                         </div>
-                        <span className="text-xs bg-gray-200 px-2 py-1 rounded-full">
-                          {specialty.count}
-                        </span>
                       </button>
                     ))}
                   </div>
@@ -257,7 +224,7 @@ const Doctors = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Available Doctors ({filteredDoctors.length})
+                  Available Doctors ({doctors.length})
                 </h2>
                 <p className="text-gray-600">
                   {showOnlineOnly ? 'Online doctors ready for consultation' : 'All verified doctors'}
@@ -265,9 +232,14 @@ const Doctors = () => {
               </div>
             </div>
 
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
             {/* Doctors Grid */}
             <div className="space-y-6">
-              {filteredDoctors.map((doctor) => (
+              {doctors.map((doctor) => (
                 <Card key={doctor.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row gap-6">
@@ -275,10 +247,10 @@ const Doctors = () => {
                       <div className="flex items-start space-x-4 flex-1">
                         <div className="relative">
                           <Avatar className="h-20 w-20">
-                            <AvatarImage src={doctor.image} alt={doctor.name} />
-                            <AvatarFallback>{doctor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                            <AvatarImage src={doctor.profile_image} alt={doctor.profile?.full_name} />
+                            <AvatarFallback>{doctor.profile?.full_name?.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
                           </Avatar>
-                          {doctor.isOnline && (
+                          {doctor.is_online && (
                             <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full flex items-center justify-center">
                               <div className="w-2 h-2 bg-white rounded-full"></div>
                             </div>
@@ -287,11 +259,11 @@ const Doctors = () => {
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2 mb-2">
-                            <h3 className="text-xl font-semibold text-gray-900">{doctor.name}</h3>
-                            {doctor.isVerified && (
+                            <h3 className="text-xl font-semibold text-gray-900">Dr. {doctor.profile?.full_name}</h3>
+                            {doctor.is_verified && (
                               <Badge variant="success" className="text-xs">Verified</Badge>
                             )}
-                            {doctor.isOnline && (
+                            {doctor.is_online && (
                               <Badge className="text-xs bg-green-100 text-green-700">Online</Badge>
                             )}
                           </div>
@@ -299,29 +271,29 @@ const Doctors = () => {
                           <div className="space-y-2">
                             <div className="flex items-center text-gray-600">
                               <Stethoscope className="h-4 w-4 mr-2" />
-                              <span>{doctor.specialization} • {doctor.experience} years exp.</span>
+                              <span>{doctor.specialization?.name} • {doctor.experience_years} years exp.</span>
                             </div>
 
                             <div className="flex items-center text-gray-600">
                               <MapPin className="h-4 w-4 mr-2" />
-                              <span>{doctor.location}</span>
+                              <span>{doctor.profile?.city || 'Location not specified'}</span>
                             </div>
 
                             <div className="flex items-center text-gray-600">
                               <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                              <span>{doctor.rating} ({doctor.totalConsultations} consultations)</span>
+                              <span>{doctor.rating}/5 ({doctor.total_consultations} consultations)</span>
                             </div>
 
                             <div className="flex items-center text-gray-600">
                               <Clock className="h-4 w-4 mr-2" />
-                              <span>Next available: {doctor.nextAvailable}</span>
+                              <span>Available for consultation</span>
                             </div>
                           </div>
 
-                          <p className="text-gray-600 mt-3 text-sm">{doctor.bio}</p>
+                          <p className="text-gray-600 mt-3 text-sm">{doctor.bio || 'No bio available'}</p>
 
                           <div className="flex flex-wrap gap-1 mt-3">
-                            {doctor.languages.map((lang) => (
+                            {doctor.languages?.map((lang: string) => (
                               <Badge key={lang} variant="outline" className="text-xs">
                                 {lang}
                               </Badge>
@@ -333,7 +305,7 @@ const Doctors = () => {
                       {/* Consultation Options */}
                       <div className="md:w-64 space-y-4">
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-gray-900">${doctor.consultationFee}</div>
+                          <div className="text-2xl font-bold text-gray-900">₹{doctor.consultation_fee}</div>
                           <div className="text-sm text-gray-600">per consultation</div>
                         </div>
 
@@ -342,6 +314,7 @@ const Doctors = () => {
                             onClick={() => handleBookConsultation(doctor.id, 'chat')}
                             className="w-full"
                             variant="outline"
+                            disabled={!doctor.is_online}
                           >
                             <MessageCircle className="h-4 w-4 mr-2" />
                             Chat Now
@@ -351,13 +324,14 @@ const Doctors = () => {
                             onClick={() => handleBookConsultation(doctor.id, 'video')}
                             className="w-full"
                             variant="outline"
+                            disabled={!doctor.is_online}
                           >
                             <Video className="h-4 w-4 mr-2" />
                             Video Call
                           </Button>
 
                           <Button
-                            onClick={() => handleBookConsultation(doctor.id, 'call')}
+                            onClick={() => handleBookConsultation(doctor, 'visit')}
                             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                           >
                             <Phone className="h-4 w-4 mr-2" />
@@ -365,22 +339,25 @@ const Doctors = () => {
                           </Button>
                         </div>
 
-                        <Button
-                          variant="ghost"
-                          className="w-full text-blue-600 hover:text-blue-700"
-                        >
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Schedule Later
-                        </Button>
+                        <Link to={`/doctors/${doctor.id}`}>
+                          <Button
+                            variant="ghost"
+                            className="w-full text-blue-600 hover:text-blue-700"
+                          >
+                            <Calendar className="h-4 w-4 mr-2" />
+                            View Profile
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
+            )}
 
             {/* No Results */}
-            {filteredDoctors.length === 0 && (
+            {!loading && doctors.length === 0 && (
               <div className="text-center py-12">
                 <Stethoscope className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No doctors found</h3>
@@ -390,7 +367,7 @@ const Doctors = () => {
                 <Button
                   onClick={() => {
                     setSearchTerm('')
-                    setSelectedSpecialty('All Specialties')
+                    setSelectedSpecialty('')
                     setShowOnlineOnly(false)
                   }}
                   variant="outline"
@@ -402,6 +379,89 @@ const Doctors = () => {
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {selectedDoctor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold">Book Appointment</h2>
+              <Button variant="ghost" onClick={() => setSelectedDoctor(null)}>
+                ×
+              </Button>
+            </div>
+
+            <div className="mb-4">
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={selectedDoctor.profile_image} />
+                  <AvatarFallback>{selectedDoctor.profile?.full_name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-semibold">Dr. {selectedDoctor.profile?.full_name}</h3>
+                  <p className="text-sm text-gray-600">{selectedDoctor.specialization?.name}</p>
+                  <p className="text-sm font-medium text-green-600">₹{selectedDoctor.consultation_fee}</p>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleBookAppointment} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <Input
+                  type="date"
+                  value={bookingData.appointment_date}
+                  onChange={(e) => setBookingData({...bookingData, appointment_date: e.target.value})}
+                  min={new Date().toISOString().split('T')[0]}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                <Input
+                  type="time"
+                  value={bookingData.appointment_time}
+                  onChange={(e) => setBookingData({...bookingData, appointment_time: e.target.value})}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Consultation Type</label>
+                <select
+                  value={bookingData.consultation_type}
+                  onChange={(e) => setBookingData({...bookingData, consultation_type: e.target.value as any})}
+                  className="w-full border rounded-md px-3 py-2"
+                >
+                  <option value="chat">Chat Consultation</option>
+                  <option value="video">Video Call</option>
+                  <option value="visit">In-Person Visit</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Symptoms (Optional)</label>
+                <textarea
+                  value={bookingData.symptoms}
+                  onChange={(e) => setBookingData({...bookingData, symptoms: e.target.value})}
+                  className="w-full border rounded-md px-3 py-2 h-20"
+                  placeholder="Describe your symptoms..."
+                />
+              </div>
+
+              <div className="flex space-x-4">
+                <Button type="button" variant="outline" onClick={() => setSelectedDoctor(null)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button type="submit" className="flex-1">
+                  Book Appointment
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

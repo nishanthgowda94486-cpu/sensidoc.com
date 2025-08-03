@@ -57,24 +57,18 @@ const Signup = () => {
     }
 
     try {
-      const userData = {
+      const userData: any = {
         full_name: formData.fullName,
         phone: formData.phone,
         role: formData.role,
-        ...(formData.role === 'doctor' && {
-          specialization: formData.specialization,
-          experience_years: parseInt(formData.experienceYears),
-          qualification: formData.qualification,
-          license_number: formData.licenseNumber,
-          city: formData.city,
-          hospital_name: formData.hospitalName
-        })
+        city: formData.city
       }
 
       const { error } = await signUp(formData.email, formData.password, userData)
       if (error) {
         setError(error.message)
       } else {
+        // If doctor, additional profile will be created by admin
         navigate('/dashboard')
       }
     } catch (err) {

@@ -12,6 +12,8 @@ import Signup from '@/pages/auth/Signup'
 import Doctors from '@/pages/Doctors'
 import AIDiagnosis from '@/pages/AIDiagnosis'
 import Drugs from '@/pages/Drugs'
+import AdminDashboard from '@/pages/admin/AdminDashboard'
+import DoctorDashboard from '@/pages/doctor/DoctorDashboard'
 
 function App() {
   return (
@@ -30,12 +32,27 @@ function App() {
                 path="/dashboard" 
                 element={
                   <ProtectedRoute>
-                    <div className="min-h-screen flex items-center justify-center">
-                      <div className="text-center">
-                        <h1 className="text-2xl font-bold text-gray-900 mb-4">Dashboard</h1>
-                        <p className="text-gray-600">Welcome to your dashboard!</p>
-                      </div>
-                    </div>
+                    <DashboardRouter />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Admin Routes */}
+              <Route 
+                path="/admin/dashboard" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Doctor Routes */}
+              <Route 
+                path="/doctor/dashboard" 
+                element={
+                  <ProtectedRoute requiredRole="doctor">
+                    <DoctorDashboard />
                   </ProtectedRoute>
                 } 
               />
@@ -54,6 +71,32 @@ function App() {
       </Router>
     </AuthProvider>
   )
+}
+
+// Dashboard Router Component
+function DashboardRouter() {
+  const { profile } = useAuth()
+  
+  if (!profile) {
+    return <Navigate to="/login" replace />
+  }
+  
+  switch (profile.role) {
+    case 'admin':
+      return <Navigate to="/admin/dashboard" replace />
+    case 'doctor':
+      return <Navigate to="/doctor/dashboard" replace />
+    case 'patient':
+    default:
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Patient Dashboard</h1>
+            <p className="text-gray-600">Welcome to your dashboard!</p>
+          </div>
+        </div>
+      )
+  }
 }
 
 export default App

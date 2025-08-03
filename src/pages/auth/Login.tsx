@@ -27,6 +27,7 @@ const Login = () => {
       if (error) {
         setError(error.message)
       } else {
+        // Redirect based on user role will be handled by DashboardRouter
         navigate('/dashboard')
       }
     } catch (err) {
