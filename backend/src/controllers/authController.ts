@@ -134,8 +134,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // Generate JWT token
     const token = jwt.sign(
       { userId, email, role },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      process.env.JWT_SECRET || 'default-secret'
     );
 
     // Send welcome email
@@ -227,8 +226,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Generate JWT token
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      process.env.JWT_SECRET || 'default-secret'
     );
 
     // Log the login
