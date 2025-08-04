@@ -43,11 +43,7 @@ const Login = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
-            <Heart className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold">
-              <span className="text-blue-600">Sensi</span>
-              <span className="text-purple-600">Doc</span>
-            </span>
+            <img src="/logo.png" alt="SinsiDoc Logo" className="h-10 w-auto mx-auto" />
           </Link>
         </div>
 

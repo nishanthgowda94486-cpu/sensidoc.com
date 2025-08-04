@@ -38,13 +38,11 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="flex items-center">
-              <Heart className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-2xl font-bold">
-                <span className="text-blue-600">Sensi</span>
-                <span className="text-purple-600">Doc</span>
-              </span>
-            </div>
+            <img src="/logo.png" alt="SinsiDoc Logo" className="h-10 w-auto" />
+            <span className="text-2xl font-bold">
+              <span className="text-blue-400">Sensi</span>
+              <span className="text-purple-400">Doc</span>
+            </span>
           </Link>
 
           {/* Desktop Navigation */}

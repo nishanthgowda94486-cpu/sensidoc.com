@@ -10,7 +10,7 @@ const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center space-x-2">
-              <Heart className="h-8 w-8 text-blue-400" />
+              <img src="/logo.png" alt="SinsiDoc Logo" className="h-10 w-auto" />
               <span className="text-2xl font-bold">
                 <span className="text-blue-400">Sensi</span>
                 <span className="text-purple-400">Doc</span>
