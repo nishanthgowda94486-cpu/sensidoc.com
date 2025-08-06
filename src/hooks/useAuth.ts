@@ -70,7 +70,7 @@ export function useAuthProvider() {
         
         // Update last login 
         await supabase
-          .from('users')
+          .from('profiles')
           .update({ last_login: new Date().toISOString() })
           .eq('id', userId)
       }
@@ -108,7 +108,7 @@ export function useAuthProvider() {
     if (!user) return { error: new Error('No user logged in') }
 
     const { error } = await supabase 
-      .from('users')
+      .from('profiles')
       .update({ ...data, updated_at: new Date().toISOString() })
       .eq('id', user.id)
 
