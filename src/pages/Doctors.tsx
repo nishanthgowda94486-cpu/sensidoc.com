@@ -37,7 +37,7 @@ const Doctors = () => {
   const [bookingData, setBookingData] = useState({
     appointment_date: '',
     appointment_time: '',
-    consultation_type: 'chat' as 'chat' | 'video' | 'visit',
+    consultation_type: 'chat' as 'chat' | 'video' | 'visit', 
     symptoms: ''
   })
 
@@ -58,7 +58,7 @@ const Doctors = () => {
       
       const { data } = await getDoctors(filters)
       let filteredData = data || []
-      
+       
       if (searchTerm) {
         filteredData = filteredData.filter((doctor: any) =>
           doctor.profile?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -78,7 +78,7 @@ const Doctors = () => {
   const loadSpecializations = async () => {
     try {
       const { data } = await getSpecializations()
-      setSpecializations(data || [])
+      setSpecializations(data || []) 
     } catch (error) {
       console.error('Error loading specializations:', error)
     }
@@ -86,7 +86,7 @@ const Doctors = () => {
 
   const handleBookConsultation = (doctor: any, type: 'chat' | 'video' | 'visit') => {
     if (!profile) {
-      alert('Please login to book an appointment')
+      alert('Please login to book an appointment') 
       return
     }
     setSelectedDoctor(doctor)
@@ -98,7 +98,7 @@ const Doctors = () => {
     if (!profile || !selectedDoctor) return
 
     try {
-      await createAppointment({
+      const appointmentData = {
         patient_id: profile.id,
         doctor_id: selectedDoctor.id,
         appointment_date: bookingData.appointment_date,
@@ -106,7 +106,9 @@ const Doctors = () => {
         consultation_type: bookingData.consultation_type,
         symptoms: bookingData.symptoms,
         consultation_fee: selectedDoctor.consultation_fee
-      })
+      }
+      
+      await createAppointment(appointmentData)
       
       alert('Appointment booked successfully!')
       setSelectedDoctor(null)
@@ -118,7 +120,7 @@ const Doctors = () => {
       })
     } catch (error) {
       console.error('Error booking appointment:', error)
-      alert('Failed to book appointment. Please try again.')
+      alert('Failed to book appointment. Please try again.') 
     }
   }
 
@@ -167,7 +169,7 @@ const Doctors = () => {
                   <input
                     type="checkbox"
                     id="online-only"
-                    checked={showOnlineOnly}
+                    checked={showOnlineOnly} 
                     onChange={(e) => setShowOnlineOnly(e.target.checked)}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
@@ -182,7 +184,7 @@ const Doctors = () => {
                   <div className="space-y-2">
                     <button
                       onClick={() => setSelectedSpecialty('')}
-                      className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors ${
+                      className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors ${ 
                         selectedSpecialty === ''
                           ? 'bg-blue-100 text-blue-700 border border-blue-200'
                           : 'hover:bg-gray-100'
@@ -190,7 +192,7 @@ const Doctors = () => {
                     >
                       <div className="flex items-center">
                         <Stethoscope className="h-4 w-4 mr-2" />
-                        <span className="text-sm">All Specialties</span>
+                        <span className="text-sm">All Specialties</span> 
                       </div>
                       <span className="text-xs bg-gray-200 px-2 py-1 rounded-full">
                         {doctors.length}
@@ -200,7 +202,7 @@ const Doctors = () => {
                       <button
                         key={specialty.id}
                         onClick={() => setSelectedSpecialty(specialty.id)}
-                        className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors ${
+                        className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors ${ 
                           selectedSpecialty === specialty.id
                             ? 'bg-blue-100 text-blue-700 border border-blue-200'
                             : 'hover:bg-gray-100'
@@ -208,7 +210,7 @@ const Doctors = () => {
                       >
                         <div className="flex items-center">
                           <span className="text-lg mr-2">{specialty.icon || '🩺'}</span>
-                          <span className="text-sm">{specialty.name}</span>
+                          <span className="text-sm">{specialty.name}</span> 
                         </div>
                       </button>
                     ))}
@@ -224,7 +226,7 @@ const Doctors = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Available Doctors ({doctors.length})
+                  Available Doctors ({doctors.length}) 
                 </h2>
                 <p className="text-gray-600">
                   {showOnlineOnly ? 'Online doctors ready for consultation' : 'All verified doctors'}
@@ -239,7 +241,7 @@ const Doctors = () => {
             ) : (
               <div className="space-y-6">
                 {doctors.map((doctor) => (
-                  <Card key={doctor.id} className="hover:shadow-lg transition-shadow">
+                  <Card key={doctor.id} className="hover:shadow-lg transition-shadow"> 
                     <CardContent className="p-6">
                       <div className="flex flex-col md:flex-row gap-6">
                         {/* Doctor Info */}
@@ -247,7 +249,7 @@ const Doctors = () => {
                           <div className="relative">
                             <Avatar className="h-20 w-20">
                               <AvatarImage src={doctor.profile_image} alt={doctor.profile?.full_name} />
-                              <AvatarFallback>{doctor.profile?.full_name?.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+                              <AvatarFallback>{doctor.profile?.full_name?.charAt(0) || 'D'}</AvatarFallback>
                             </Avatar>
                             {doctor.is_online && (
                               <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full flex items-center justify-center">
@@ -259,7 +261,7 @@ const Doctors = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-2">
                               <h3 className="text-xl font-semibold text-gray-900">Dr. {doctor.profile?.full_name}</h3>
-                              {doctor.is_verified && (
+                              {doctor.is_verified && ( 
                                 <Badge variant="success" className="text-xs">Verified</Badge>
                               )}
                               {doctor.is_online && (
@@ -269,7 +271,7 @@ const Doctors = () => {
 
                             <div className="space-y-2">
                               <div className="flex items-center text-gray-600">
-                                <Stethoscope className="h-4 w-4 mr-2" />
+                                <Stethoscope className="h-4 w-4 mr-2" /> 
                                 <span>{doctor.specialization?.name} • {doctor.experience_years} years exp.</span>
                               </div>
 
@@ -279,7 +281,7 @@ const Doctors = () => {
                               </div>
 
                               <div className="flex items-center text-gray-600">
-                                <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                                <Star className="h-4 w-4 mr-2 text-yellow-500" /> 
                                 <span>{doctor.rating}/5 ({doctor.total_consultations} consultations)</span>
                               </div>
 
@@ -289,10 +291,10 @@ const Doctors = () => {
                               </div>
                             </div>
 
-                            <p className="text-gray-600 mt-3 text-sm">{doctor.bio || 'No bio available'}</p>
+                            <p className="text-gray-600 mt-3 text-sm">{doctor.bio || 'Experienced healthcare professional'}</p>
 
                             <div className="flex flex-wrap gap-1 mt-3">
-                              {doctor.languages?.map((lang: string) => (
+                              {['English', 'Hindi'].map((lang: string) => (
                                 <Badge key={lang} variant="outline" className="text-xs">
                                   {lang}
                                 </Badge>
@@ -304,26 +306,24 @@ const Doctors = () => {
                         {/* Consultation Options */}
                         <div className="md:w-64 space-y-4">
                           <div className="text-center">
-                            <div className="text-2xl font-bold text-gray-900">₹{doctor.consultation_fee}</div>
+                            <div className="text-2xl font-bold text-gray-900">₹{doctor.consultation_fee || 500}</div>
                             <div className="text-sm text-gray-600">per consultation</div>
                           </div>
 
                           <div className="space-y-2">
                             <Button
-                              onClick={() => handleBookConsultation(doctor.id, 'chat')}
+                              onClick={() => handleBookConsultation(doctor, 'chat')}
                               className="w-full"
                               variant="outline"
-                              disabled={!doctor.is_online}
                             >
                               <MessageCircle className="h-4 w-4 mr-2" />
                               Chat Now
                             </Button>
 
                             <Button
-                              onClick={() => handleBookConsultation(doctor.id, 'video')}
+                              onClick={() => handleBookConsultation(doctor, 'video')}
                               className="w-full"
                               variant="outline"
-                              disabled={!doctor.is_online}
                             >
                               <Video className="h-4 w-4 mr-2" />
                               Video Call
@@ -338,7 +338,7 @@ const Doctors = () => {
                             </Button>
                           </div>
 
-                          <Link to={`/doctors/${doctor.id}`}>
+                          <div>
                             <Button
                               variant="ghost"
                               className="w-full text-blue-600 hover:text-blue-700"
@@ -346,7 +346,7 @@ const Doctors = () => {
                               <Calendar className="h-4 w-4 mr-2" />
                               View Profile
                             </Button>
-                          </Link>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -360,7 +360,7 @@ const Doctors = () => {
               <div className="text-center py-12">
                 <Stethoscope className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No doctors found</h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 mb-4"> 
                   Try adjusting your filters or search terms
                 </p>
                 <Button
@@ -382,7 +382,7 @@ const Doctors = () => {
       {/* Booking Modal */}
       {selectedDoctor && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md"> 
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">Book Appointment</h2>
               <Button variant="ghost" onClick={() => setSelectedDoctor(null)}>
@@ -394,12 +394,12 @@ const Doctors = () => {
               <div className="flex items-center space-x-3">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={selectedDoctor.profile_image} />
-                  <AvatarFallback>{selectedDoctor.profile?.full_name?.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{selectedDoctor.profile?.full_name?.charAt(0) || 'D'}</AvatarFallback>
                 </Avatar>
                 <div>
                   <h3 className="font-semibold">Dr. {selectedDoctor.profile?.full_name}</h3>
-                  <p className="text-sm text-gray-600">{selectedDoctor.specialization?.name}</p>
-                  <p className="text-sm font-medium text-green-600">₹{selectedDoctor.consultation_fee}</p>
+                  <p className="text-sm text-gray-600">{selectedDoctor.specialization || 'General Medicine'}</p>
+                  <p className="text-sm font-medium text-green-600">₹{selectedDoctor.consultation_fee || 500}</p>
                 </div>
               </div>
             </div>
@@ -409,7 +409,7 @@ const Doctors = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                 <Input
                   type="date"
-                  value={bookingData.appointment_date}
+                  value={bookingData.appointment_date} 
                   onChange={(e) => setBookingData({...bookingData, appointment_date: e.target.value})}
                   min={new Date().toISOString().split('T')[0]}
                   required
@@ -420,7 +420,7 @@ const Doctors = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
                 <Input
                   type="time"
-                  value={bookingData.appointment_time}
+                  value={bookingData.appointment_time} 
                   onChange={(e) => setBookingData({...bookingData, appointment_time: e.target.value})}
                   required
                 />
@@ -430,7 +430,7 @@ const Doctors = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Consultation Type</label>
                 <select
                   value={bookingData.consultation_type}
-                  onChange={(e) => setBookingData({...bookingData, consultation_type: e.target.value as any})}
+                  onChange={(e) => setBookingData({...bookingData, consultation_type: e.target.value as any})} 
                   className="w-full border rounded-md px-3 py-2"
                 >
                   <option value="chat">Chat Consultation</option>
@@ -443,7 +443,7 @@ const Doctors = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Symptoms (Optional)</label>
                 <textarea
                   value={bookingData.symptoms}
-                  onChange={(e) => setBookingData({...bookingData, symptoms: e.target.value})}
+                  onChange={(e) => setBookingData({...bookingData, symptoms: e.target.value})} 
                   className="w-full border rounded-md px-3 py-2 h-20"
                   placeholder="Describe your symptoms..."
                 />

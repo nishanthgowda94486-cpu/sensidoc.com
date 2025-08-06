@@ -25,10 +25,10 @@ const Login = () => {
     try {
       const { error } = await signIn(email, password)
       if (error) {
-        setError(error.message)
+        setError(error.message || 'Login failed')
       } else {
         // Redirect based on user role will be handled by DashboardRouter
-        navigate('/dashboard')
+        navigate('/')
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -43,7 +43,7 @@ const Login = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
-            <img src="/logo.png" alt="SinsiDoc Logo" className="h-10 w-auto mx-auto" />
+            <Heart className="h-10 w-10 text-blue-600 mx-auto" />
           </Link>
         </div>
 

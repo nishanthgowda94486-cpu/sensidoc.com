@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react'
-import { supabase, type Profile, type UserRole } from '@/lib/supabase'
+import { supabase, type Profile, type UserRole, getCurrentProfile } from '@/lib/supabase'
 import type { Session, User } from '@supabase/supabase-js'
 
 interface AuthContextType {
@@ -32,7 +32,7 @@ export function useAuthProvider() {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
+      setSession(session) 
       setUser(session?.user ?? null)
       if (session?.user) {
         fetchUserProfile(session.user.id)
@@ -44,7 +44,7 @@ export function useAuthProvider() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session)
+        setSession(session) 
         setUser(session?.user ?? null)
         
         if (session?.user) {
@@ -61,20 +61,16 @@ export function useAuthProvider() {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
+      const { data, error } = await getCurrentProfile()
 
       if (error) {
         console.error('Error fetching user profile:', error)
       } else {
         setProfile(data)
         
-        // Update last login
+        // Update last login 
         await supabase
-          .from('profiles')
+          .from('users')
           .update({ last_login: new Date().toISOString() })
           .eq('id', userId)
       }
@@ -86,7 +82,7 @@ export function useAuthProvider() {
   }
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -94,7 +90,7 @@ export function useAuthProvider() {
   }
 
   const signUp = async (email: string, password: string, userData: any) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -111,8 +107,8 @@ export function useAuthProvider() {
   const updateProfile = async (data: Partial<Profile>) => {
     if (!user) return { error: new Error('No user logged in') }
 
-    const { error } = await supabase
-      .from('profiles')
+    const { error } = await supabase 
+      .from('users')
       .update({ ...data, updated_at: new Date().toISOString() })
       .eq('id', user.id)
 
@@ -124,7 +120,7 @@ export function useAuthProvider() {
   }
 
   return {
-    user,
+    user, 
     profile,
     session,
     loading,

@@ -1,5 +1,6 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import ProtectedRoute from '@/components/ProtectedRoute'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 
@@ -21,7 +22,7 @@ import AuthProvider from '@/components/AuthProvider'
 function App() {
   return (
     <Router>
-      <AuthProvider>
+      <AuthProvider> 
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">
@@ -32,8 +33,16 @@ function App() {
               <Route path="/ai-diagnosis" element={<AIDiagnosis />} />
               <Route path="/doctors" element={<Doctors />} />
               <Route path="/drugs" element={<Drugs />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+              <Route path="/admin/dashboard" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/doctor/dashboard" element={
+                <ProtectedRoute requiredRole="doctor">
+                  <DoctorDashboard />
+                </ProtectedRoute>
+              } />
               <Route path="/blog" element={<Blog />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/legal/terms" element={<TermsOfService />} />

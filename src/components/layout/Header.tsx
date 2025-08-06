@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { 
@@ -13,14 +14,11 @@ import {
 } from 'lucide-react'
 
 const Header = () => {
+  const { profile, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  
-  // Temporary mock user for testing
-  const user = null
 
   const handleSignOut = async () => {
-    // Mock sign out
-    console.log('Sign out clicked')
+    await signOut()
   }
 
   const navItems = [
@@ -38,7 +36,7 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <img src="/logo.png" alt="SinsiDoc Logo" className="h-10 w-auto" />
+            <Heart className="h-8 w-8 text-blue-600" />
             <span className="text-2xl font-bold">
               <span className="text-blue-400">Sensi</span>
               <span className="text-purple-400">Doc</span>
@@ -56,7 +54,7 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
-            {user && user.role === 'admin' && (
+            {profile && profile.role === 'admin' && (
               <Link to="/admin/dashboard">
                 <Button variant="outline" size="sm" className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100">
                   <Settings className="h-4 w-4 mr-2" />
@@ -68,7 +66,7 @@ const Header = () => {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
-            {user ? (
+            {profile ? (
               <div className="flex items-center space-x-4">
                 <Link to="/dashboard">
                   <Button variant="outline" size="sm">
@@ -80,13 +78,13 @@ const Header = () => {
                   <Avatar className="cursor-pointer">
                     <AvatarImage src="" />
                     <AvatarFallback>
-                      {user.full_name?.charAt(0) || user.email.charAt(0)}
+                      {profile.full_name?.charAt(0) || profile.email?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                     <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                      <div className="font-medium">{user.full_name}</div>
-                      <div className="text-gray-500">{user.email}</div>
+                      <div className="font-medium">{profile.full_name}</div>
+                      <div className="text-gray-500">{profile.email}</div>
                     </div>
                     <Link
                       to="/dashboard"
@@ -95,7 +93,7 @@ const Header = () => {
                       <Settings className="h-4 w-4 mr-2" />
                       Settings
                     </Link>
-                    {user && user.role === 'admin' && (
+                    {profile && profile.role === 'admin' && (
                       <Link
                         to="/admin/dashboard"
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -111,7 +109,7 @@ const Header = () => {
                       <LogOut className="h-4 w-4 mr-2" />
                       Sign Out
                     </button>
-                    <div className="text-xs text-blue-600 capitalize">{user?.role}</div>
+                    <div className="text-xs text-blue-600 capitalize">{profile?.role}</div>
                   </div>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -69,7 +70,7 @@ const Signup = () => {
         setError(error.message)
       } else {
         // If doctor, additional profile will be created by admin
-        navigate('/dashboard')
+        navigate('/')
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -84,7 +85,7 @@ const Signup = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
-            <img src="/logo.png" alt="SinsiDoc Logo" className="h-10 w-auto mx-auto" />
+            <Heart className="h-10 w-10 text-blue-600 mx-auto" />
             <span className="text-2xl font-bold">
               <span className="text-blue-400">Sensi</span>
               <span className="text-purple-400">Doc</span>
