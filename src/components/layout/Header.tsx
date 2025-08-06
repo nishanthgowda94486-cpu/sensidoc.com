@@ -9,9 +9,9 @@ import {
   User, 
   LogOut, 
   Settings, 
-  Shield, 
-  Heart
+  Shield
 } from 'lucide-react'
+
 
 const Header = () => {
   const { profile, signOut } = useAuth()
@@ -36,7 +36,7 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <Heart className="h-8 w-8 text-blue-600" />
+            <img src="/logo.png" alt="SensiDoc Logo" className="h-8 w-8" />
             <span className="text-2xl font-bold">
               <span className="text-blue-400">Sensi</span>
               <span className="text-purple-400">Doc</span>

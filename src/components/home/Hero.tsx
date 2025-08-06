@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Heart, ArrowRight, Shield, Clock, Users } from 'lucide-react'
+import { ArrowRight, Shield, Clock, Users } from 'lucide-react'
 
 const Hero = () => {
   return (
@@ -17,7 +17,7 @@ const Hero = () => {
           <div className="space-y-8">
             <div className="space-y-4">
               <div className="flex items-center space-x-2 text-blue-600">
-                <Heart className="h-6 w-6" />
+                <img src="/logo.png" alt="SensiDoc Logo" className="h-6 w-6" />
                 <span className="font-semibold">Trusted Healthcare Platform</span>
               </div>
               <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight">

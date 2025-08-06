@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
+import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
 
 const Footer = () => {
   return (
@@ -10,7 +10,7 @@ const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center space-x-2">
-              <Heart className="h-10 w-10 text-blue-400" />
+              <img src="/logo.png" alt="SensiDoc Logo" className="h-10 w-10" />
               <span className="text-2xl font-bold">
                 <span className="text-blue-400">Sensi</span>
                 <span className="text-purple-400">Doc</span>

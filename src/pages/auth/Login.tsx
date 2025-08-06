@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
-import { Heart, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -43,7 +43,7 @@ const Login = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
-            <Heart className="h-10 w-10 text-blue-600 mx-auto" />
+            <img src="/logo.png" alt="SensiDoc Logo" className="h-10 w-10 mx-auto" />
           </Link>
         </div>
 

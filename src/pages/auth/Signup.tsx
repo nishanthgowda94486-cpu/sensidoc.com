@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/hooks/useAuth'
-import { Heart, Eye, EyeOff, Loader2, User, Stethoscope } from 'lucide-react'
+import { Eye, EyeOff, Loader2, User, Stethoscope } from 'lucide-react'
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -84,7 +84,7 @@ const Signup = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
-            <Heart className="h-10 w-10 text-blue-600 mx-auto" />
+            <img src="/logo.png" alt="SensiDoc Logo" className="h-10 w-10 mx-auto" />
             <span className="text-2xl font-bold">
               <span className="text-blue-400">Sensi</span>
               <span className="text-purple-400">Doc</span>
