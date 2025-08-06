@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/useAuth' 
 import { Navigate } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import { 
   getAppointments, 
-  updateAppointmentStatus,
+  updateAppointmentStatus, 
   getDoctorById,
   updateDoctor
 } from '@/lib/supabase'
@@ -37,7 +37,7 @@ import {
 const DoctorDashboard = () => {
   const { profile, loading } = useAuth()
   const [appointments, setAppointments] = useState<any[]>([])
-  const [doctorProfile, setDoctorProfile] = useState<any>(null)
+  const [doctorProfile, setDoctorProfile] = useState<any>(null) 
   const [stats, setStats] = useState({
     totalAppointments: 0,
     pendingAppointments: 0,
@@ -48,7 +48,7 @@ const DoctorDashboard = () => {
     totalReviews: 0
   })
   const [activeTab, setActiveTab] = useState('overview')
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true) 
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null)
   const [appointmentNotes, setAppointmentNotes] = useState('')
   const [prescription, setPrescription] = useState('')
@@ -56,7 +56,7 @@ const DoctorDashboard = () => {
 
   useEffect(() => {
     if (profile?.role === 'doctor') {
-      loadDoctorData()
+      loadDoctorData() 
     }
   }, [profile])
 
@@ -66,7 +66,7 @@ const DoctorDashboard = () => {
     setIsLoading(true)
     try {
       // Load appointments
-      const appointmentsData = await getAppointments(profile.id, 'doctor')
+      const appointmentsData = await getAppointments(profile.id, 'doctor') 
       setAppointments(appointmentsData.data || [])
 
       // Load doctor profile
@@ -77,7 +77,7 @@ const DoctorDashboard = () => {
       }
 
       // Calculate stats
-      const appointments = appointmentsData.data || []
+      const appointments = appointmentsData.data || [] 
       const today = new Date().toDateString()
       
       const todayAppointments = appointments.filter(a => 
@@ -85,7 +85,7 @@ const DoctorDashboard = () => {
       )
       
       const completedAppointments = appointments.filter(a => a.status === 'completed')
-      const totalEarnings = completedAppointments.reduce((sum, a) => 
+      const totalEarnings = completedAppointments.reduce((sum, a) =>  
         sum + (a.consultation_fee || doctorData?.consultation_fee || 0), 0
       )
 
@@ -95,7 +95,7 @@ const DoctorDashboard = () => {
         completedAppointments: completedAppointments.length,
         todayAppointments: todayAppointments.length,
         totalEarnings,
-        rating: doctorData?.rating || 0,
+        rating: doctorData?.rating || 0, 
         totalReviews: doctorData?.total_reviews || 0
       })
     } catch (error) {
@@ -106,7 +106,7 @@ const DoctorDashboard = () => {
   }
 
   const handleAppointmentAction = async (appointmentId: string, status: string, notes?: string) => {
-    try {
+    try { 
       const updates: any = { status }
       if (notes) updates.doctor_notes = notes
       if (prescription) updates.prescription = prescription
@@ -124,7 +124,7 @@ const DoctorDashboard = () => {
   }
 
   const handleUpdateOnlineStatus = async (isOnline: boolean) => {
-    if (!doctorProfile) return
+    if (!doctorProfile) return 
     
     try {
       await updateDoctor(doctorProfile.id, { is_online: isOnline })
@@ -135,7 +135,7 @@ const DoctorDashboard = () => {
   }
 
   if (loading) {
-    return (
+    return ( 
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
@@ -143,7 +143,7 @@ const DoctorDashboard = () => {
   }
 
   if (!profile || profile.role !== 'doctor') {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace /> 
   }
 
   const todayAppointments = appointments.filter(a => 
@@ -151,7 +151,7 @@ const DoctorDashboard = () => {
   )
 
   const upcomingAppointments = appointments.filter(a => 
-    new Date(a.appointment_date) >= new Date() && a.status !== 'completed' && a.status !== 'cancelled'
+    new Date(a.appointment_date) >= new Date() && a.status !== 'completed' && a.status !== 'cancelled' 
   ).sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())
 
   return (
@@ -161,7 +161,7 @@ const DoctorDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Avatar className="h-12 w-12">
+              <Avatar className="h-12 w-12"> 
                 <AvatarImage src={doctorProfile?.profile_image} />
                 <AvatarFallback>{profile.full_name.charAt(0)}</AvatarFallback>
               </Avatar>
@@ -172,7 +172,7 @@ const DoctorDashboard = () => {
             </div>
             <div className="flex items-center space-x-4">
               <Button
-                variant={doctorProfile?.is_online ? "destructive" : "default"}
+                variant={doctorProfile?.is_online ? "destructive" : "default"} 
                 onClick={() => handleUpdateOnlineStatus(!doctorProfile?.is_online)}
               >
                 {doctorProfile?.is_online ? 'Go Offline' : 'Go Online'}
@@ -188,7 +188,7 @@ const DoctorDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger> 
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="patients">Patients</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -198,7 +198,7 @@ const DoctorDashboard = () => {
           <TabsContent value="overview" className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+              <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white"> 
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -210,7 +210,7 @@ const DoctorDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+              <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white"> 
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -222,7 +222,7 @@ const DoctorDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+              <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white"> 
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -234,7 +234,7 @@ const DoctorDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+              <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white"> 
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -248,7 +248,7 @@ const DoctorDashboard = () => {
             </div>
 
             {/* Today's Schedule */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> 
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -258,7 +258,7 @@ const DoctorDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   {todayAppointments.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No appointments today</p>
+                    <p className="text-gray-500 text-center py-8">No appointments today</p> 
                   ) : (
                     <div className="space-y-4">
                       {todayAppointments.slice(0, 5).map((appointment) => (
@@ -274,7 +274,7 @@ const DoctorDashboard = () => {
                           </div>
                           <div className="flex items-center space-x-2">
                             <Badge variant={
-                              appointment.consultation_type === 'video' ? 'default' :
+                              appointment.consultation_type === 'video' ? 'default' : 
                               appointment.consultation_type === 'chat' ? 'secondary' : 'outline'
                             }>
                               {appointment.consultation_type}
@@ -293,7 +293,7 @@ const DoctorDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card> 
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Activity className="h-5 w-5 mr-2" />
@@ -302,7 +302,7 @@ const DoctorDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between"> 
                       <span className="text-sm text-gray-600">Pending Appointments</span>
                       <span className="font-semibold">{stats.pendingAppointments}</span>
                     </div>
@@ -310,7 +310,7 @@ const DoctorDashboard = () => {
                       <span className="text-sm text-gray-600">Completed This Month</span>
                       <span className="font-semibold">{stats.completedAppointments}</span>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between"> 
                       <span className="text-sm text-gray-600">Average Rating</span>
                       <div className="flex items-center space-x-1">
                         <Star className="h-4 w-4 text-yellow-500 fill-current" />
@@ -318,7 +318,7 @@ const DoctorDashboard = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Total Reviews</span>
+                      <span className="text-sm text-gray-600">Total Reviews</span> 
                       <span className="font-semibold">{stats.totalReviews}</span>
                     </div>
                   </div>
@@ -330,7 +330,7 @@ const DoctorDashboard = () => {
           {/* Appointments Tab */}
           <TabsContent value="appointments" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Appointment Management</h2>
+              <h2 className="text-xl font-semibold">Appointment Management</h2> 
               <div className="flex items-center space-x-4">
                 <Badge variant="outline">{appointments.length} Total</Badge>
                 <Badge variant="warning">{stats.pendingAppointments} Pending</Badge>
@@ -341,7 +341,7 @@ const DoctorDashboard = () => {
             {/* Pending Appointments */}
             <Card>
               <CardHeader>
-                <CardTitle>Pending Appointments</CardTitle>
+                <CardTitle>Pending Appointments</CardTitle> 
                 <CardDescription>Appointments waiting for your response</CardDescription>
               </CardHeader>
               <CardContent>
@@ -350,7 +350,7 @@ const DoctorDashboard = () => {
                 ) : (
                   <div className="space-y-4">
                     {appointments.filter(a => a.status === 'pending').map((appointment) => (
-                      <div key={appointment.id} className="border rounded-lg p-4">
+                      <div key={appointment.id} className="border rounded-lg p-4"> 
                         <div className="flex items-start justify-between">
                           <div className="flex items-start space-x-4">
                             <Avatar className="h-12 w-12">
@@ -361,7 +361,7 @@ const DoctorDashboard = () => {
                               <p className="text-sm text-gray-600">{appointment.patient?.email}</p>
                               <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
                                 <span className="flex items-center">
-                                  <Calendar className="h-4 w-4 mr-1" />
+                                  <Calendar className="h-4 w-4 mr-1" /> 
                                   {new Date(appointment.appointment_date).toLocaleDateString()}
                                 </span>
                                 <span className="flex items-center">
@@ -372,7 +372,7 @@ const DoctorDashboard = () => {
                               </div>
                               {appointment.symptoms && (
                                 <div className="mt-3">
-                                  <p className="text-sm font-medium text-gray-700">Symptoms:</p>
+                                  <p className="text-sm font-medium text-gray-700">Symptoms:</p> 
                                   <p className="text-sm text-gray-600">{appointment.symptoms}</p>
                                 </div>
                               )}
@@ -380,7 +380,7 @@ const DoctorDashboard = () => {
                           </div>
                           <div className="flex items-center space-x-2">
                             <Button
-                              size="sm"
+                              size="sm" 
                               variant="outline"
                               onClick={() => handleAppointmentAction(appointment.id, 'rejected')}
                             >
@@ -406,7 +406,7 @@ const DoctorDashboard = () => {
             {/* Upcoming Appointments */}
             <Card>
               <CardHeader>
-                <CardTitle>Upcoming Appointments</CardTitle>
+                <CardTitle>Upcoming Appointments</CardTitle> 
                 <CardDescription>Confirmed appointments scheduled</CardDescription>
               </CardHeader>
               <CardContent>
@@ -415,7 +415,7 @@ const DoctorDashboard = () => {
                 ) : (
                   <div className="space-y-4">
                     {upcomingAppointments.map((appointment) => (
-                      <div key={appointment.id} className="border rounded-lg p-4">
+                      <div key={appointment.id} className="border rounded-lg p-4"> 
                         <div className="flex items-start justify-between">
                           <div className="flex items-start space-x-4">
                             <Avatar className="h-12 w-12">
@@ -426,7 +426,7 @@ const DoctorDashboard = () => {
                               <p className="text-sm text-gray-600">{appointment.patient?.email}</p>
                               <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
                                 <span className="flex items-center">
-                                  <Calendar className="h-4 w-4 mr-1" />
+                                  <Calendar className="h-4 w-4 mr-1" /> 
                                   {new Date(appointment.appointment_date).toLocaleDateString()}
                                 </span>
                                 <span className="flex items-center">
@@ -440,7 +440,7 @@ const DoctorDashboard = () => {
                           </div>
                           <div className="flex items-center space-x-2">
                             {appointment.consultation_type === 'video' && (
-                              <Button size="sm" variant="outline">
+                              <Button size="sm" variant="outline"> 
                                 <Video className="h-4 w-4 mr-1" />
                                 Join Call
                               </Button>
@@ -452,7 +452,7 @@ const DoctorDashboard = () => {
                               </Button>
                             )}
                             <Button
-                              size="sm"
+                              size="sm" 
                               onClick={() => setSelectedAppointment(appointment)}
                             >
                               <FileText className="h-4 w-4 mr-1" />
@@ -471,7 +471,7 @@ const DoctorDashboard = () => {
           {/* Patients Tab */}
           <TabsContent value="patients" className="space-y-6">
             <h2 className="text-xl font-semibold">Patient History</h2>
-            
+             
             <Card>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -487,7 +487,7 @@ const DoctorDashboard = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {appointments.filter(a => a.status === 'completed').map((appointment) => (
-                        <tr key={appointment.id} className="hover:bg-gray-50">
+                        <tr key={appointment.id} className="hover:bg-gray-50"> 
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <Avatar className="h-8 w-8">
@@ -501,7 +501,7 @@ const DoctorDashboard = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">{new Date(appointment.appointment_date).toLocaleDateString()}</div>
-                            <div className="text-sm text-gray-500">{appointment.appointment_time}</div>
+                            <div className="text-sm text-gray-500">{appointment.appointment_time}</div> 
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">{appointment.diagnosis || 'Not specified'}</div>
@@ -511,7 +511,7 @@ const DoctorDashboard = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex items-center space-x-2">
-                              <Button size="sm" variant="outline">
+                              <Button size="sm" variant="outline"> 
                                 <Eye className="h-4 w-4" />
                               </Button>
                               <Button size="sm" variant="outline">
@@ -531,7 +531,7 @@ const DoctorDashboard = () => {
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
             <h2 className="text-xl font-semibold">Doctor Profile</h2>
-            
+             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -539,7 +539,7 @@ const DoctorDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Specialization</label>
+                    <label className="text-sm font-medium text-gray-700">Specialization</label> 
                     <p className="text-sm text-gray-900">{doctorProfile?.specialization?.name}</p>
                   </div>
                   <div>
@@ -551,7 +551,7 @@ const DoctorDashboard = () => {
                     <p className="text-sm text-gray-900">{doctorProfile?.experience_years} years</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">License Number</label>
+                    <label className="text-sm font-medium text-gray-700">License Number</label> 
                     <p className="text-sm text-gray-900">{doctorProfile?.license_number}</p>
                   </div>
                   <div>
@@ -561,7 +561,7 @@ const DoctorDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card> 
                 <CardHeader>
                   <CardTitle>Contact Information</CardTitle>
                 </CardHeader>
@@ -573,7 +573,7 @@ const DoctorDashboard = () => {
                   <div>
                     <label className="text-sm font-medium text-gray-700">Phone</label>
                     <p className="text-sm text-gray-900">{profile.phone}</p>
-                  </div>
+                  </div> 
                   <div>
                     <label className="text-sm font-medium text-gray-700">Hospital/Clinic</label>
                     <p className="text-sm text-gray-900">{doctorProfile?.hospital_name || 'Not specified'}</p>
@@ -586,7 +586,7 @@ const DoctorDashboard = () => {
               </Card>
             </div>
 
-            <Card>
+            <Card> 
               <CardHeader>
                 <CardTitle>Bio</CardTitle>
               </CardHeader>
@@ -601,7 +601,7 @@ const DoctorDashboard = () => {
       {/* Complete Appointment Modal */}
       {selectedAppointment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"> 
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">Complete Appointment</h2>
               <Button variant="ghost" onClick={() => setSelectedAppointment(null)}>
@@ -611,7 +611,7 @@ const DoctorDashboard = () => {
 
             <div className="space-y-4">
               <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                <Avatar className="h-12 w-12">
+                <Avatar className="h-12 w-12"> 
                   <AvatarFallback>{selectedAppointment.patient?.full_name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -625,7 +625,7 @@ const DoctorDashboard = () => {
 
               {selectedAppointment.symptoms && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Patient Symptoms</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Patient Symptoms</label> 
                   <p className="text-sm text-gray-900 p-3 bg-gray-50 rounded-lg">{selectedAppointment.symptoms}</p>
                 </div>
               )}
@@ -640,7 +640,7 @@ const DoctorDashboard = () => {
                 />
               </div>
 
-              <div>
+              <div> 
                 <label className="block text-sm font-medium text-gray-700 mb-2">Prescription</label>
                 <Textarea
                   value={prescription}
@@ -650,7 +650,7 @@ const DoctorDashboard = () => {
                 />
               </div>
 
-              <div>
+              <div> 
                 <label className="block text-sm font-medium text-gray-700 mb-2">Doctor Notes</label>
                 <Textarea
                   value={appointmentNotes}
@@ -661,7 +661,7 @@ const DoctorDashboard = () => {
               </div>
 
               <div className="flex justify-end space-x-4">
-                <Button variant="outline" onClick={() => setSelectedAppointment(null)}>
+                <Button variant="outline" onClick={() => setSelectedAppointment(null)}> 
                   Cancel
                 </Button>
                 <Button onClick={() => handleAppointmentAction(selectedAppointment.id, 'completed', appointmentNotes)}>
