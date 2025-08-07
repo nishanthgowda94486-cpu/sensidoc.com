@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Heart } from 'lucide-react'
 
 interface LoginProps {
   role?: 'admin' | 'doctor' | 'patient';
@@ -21,6 +21,17 @@ const Login: React.FC<LoginProps> = ({ role }) => {
   const { signIn } = useAuth()
   const navigate = useNavigate()
 
+  // Pre-fill demo credentials based on role
+  React.useEffect(() => {
+    if (role === 'admin') {
+      setEmail('admin@sensidoc.com')
+      setPassword('admin123')
+    } else if (role === 'doctor') {
+      setEmail('dr.smith@sensidoc.com')
+      setPassword('doctor123')
+    }
+  }, [role])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -31,13 +42,18 @@ const Login: React.FC<LoginProps> = ({ role }) => {
       if (error) {
         setError(error.message || 'Login failed')
       } else {
-        // Redirect based on user role and login page
-        if (role === 'admin') {
-          navigate('/admin/dashboard')
-        } else if (role === 'doctor') {
-          navigate('/doctor/dashboard')
-        } else {
-          navigate('/dashboard')
+        // Get user data to determine redirect
+        const userStr = localStorage.getItem('currentUser')
+        if (userStr) {
+          const user = JSON.parse(userStr)
+          // Redirect based on user role
+          if (user.role === 'admin') {
+            navigate('/admin/dashboard')
+          } else if (user.role === 'doctor') {
+            navigate('/doctor/dashboard')
+          } else {
+            navigate('/dashboard')
+          }
         }
       }
     } catch (err) {
@@ -47,21 +63,43 @@ const Login: React.FC<LoginProps> = ({ role }) => {
     }
   }
 
+  const getDemoCredentials = () => {
+    if (role === 'admin') {
+      return { email: 'admin@sensidoc.com', password: 'admin123' }
+    } else if (role === 'doctor') {
+      return { email: 'dr.smith@sensidoc.com', password: 'doctor123' }
+    } else {
+      return { email: 'patient@sensidoc.com', password: 'patient123' }
+    }
+  }
+
+  const fillDemoCredentials = () => {
+    const creds = getDemoCredentials()
+    setEmail(creds.email)
+    setPassword(creds.password)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
-            <img src="/logo.png" alt="SensiDoc Logo" className="h-10 w-10 mx-auto" />
+            <Heart className="h-10 w-10 text-blue-600" />
+            <span className="text-2xl font-bold">
+              <span className="text-blue-600">Sensi</span>
+              <span className="text-purple-600">Doc</span>
+            </span>
           </Link>
         </div>
 
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              {role === 'admin' ? 'Admin Login' : role === 'doctor' ? 'Doctor Login' : 'Welcome back'}
+            </CardTitle>
             <CardDescription>
-              Sign in to your account to continue
+              {role === 'admin' ? 'Access admin dashboard' : role === 'doctor' ? 'Access doctor dashboard' : 'Sign in to your account to continue'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -71,6 +109,27 @@ const Login: React.FC<LoginProps> = ({ role }) => {
                   {error}
                 </div>
               )}
+
+              {/* Demo Credentials Banner */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-800 mb-2">
+                  <strong>Demo Credentials:</strong>
+                </p>
+                <div className="text-xs text-blue-700 space-y-1">
+                  <div>Admin: admin@sensidoc.com / admin123</div>
+                  <div>Doctor: dr.smith@sensidoc.com / doctor123</div>
+                  <div>Patient: patient@sensidoc.com / patient123</div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={fillDemoCredentials}
+                  className="mt-2 w-full"
+                >
+                  Use Demo Credentials
+                </Button>
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -155,27 +214,33 @@ const Login: React.FC<LoginProps> = ({ role }) => {
               </p>
             </div>
 
-            {/* Admin/Doctor Login Links */}
-            {role !== 'admin' && (
-              <div className="mt-4 pt-4 border-t text-center">
+            {/* Role-specific login links */}
+            <div className="mt-4 pt-4 border-t text-center space-y-2">
+              {role !== 'admin' && (
                 <Link
                   to="/admin/login"
-                  className="text-xs text-gray-500 hover:text-gray-700"
+                  className="block text-xs text-gray-500 hover:text-gray-700"
                 >
                   Admin Login
                 </Link>
-              </div>
-            )}
-            {role !== 'doctor' && (
-              <div className="mt-2 text-center">
+              )}
+              {role !== 'doctor' && (
                 <Link
                   to="/doctor/login"
-                  className="text-xs text-gray-500 hover:text-gray-700"
+                  className="block text-xs text-gray-500 hover:text-gray-700"
                 >
                   Doctor Login
                 </Link>
-              </div>
-            )}
+              )}
+              {role && (
+                <Link
+                  to="/login"
+                  className="block text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Patient Login
+                </Link>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

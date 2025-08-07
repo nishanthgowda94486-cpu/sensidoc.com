@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,17 +14,34 @@ import {
   Loader2,
   Stethoscope,
   Heart,
-  Eye,
-  Thermometer,
-  Activity
+  Activity,
+  Thermometer
 } from 'lucide-react'
+import { createDiagnosis, getAIUsageCount } from '@/lib/supabase'
 
 const AIDiagnosis = () => {
+  const { profile } = useAuth()
   const [symptoms, setSymptoms] = useState('')
   const [uploadedImage, setUploadedImage] = useState<File | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [diagnosis, setDiagnosis] = useState<any>(null)
-  const [searchCount, setSearchCount] = useState(1) // Mock search count
+  const [usageCount, setUsageCount] = useState(0)
+
+  React.useEffect(() => {
+    if (profile) {
+      loadUsageCount()
+    }
+  }, [profile])
+
+  const loadUsageCount = async () => {
+    if (!profile) return
+    try {
+      const count = await getAIUsageCount(profile.id, 'diagnosis')
+      setUsageCount(count)
+    } catch (error) {
+      console.error('Error loading usage count:', error)
+    }
+  }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -39,32 +56,38 @@ const AIDiagnosis = () => {
       return
     }
 
+    if (!profile) {
+      alert('Please login to use AI diagnosis')
+      return
+    }
+
+    // Check usage limits for free users
+    if (profile.membership_type === 'free' && usageCount >= 3) {
+      alert('You have reached your free limit. Please upgrade to premium for unlimited access.')
+      return
+    }
+
     setIsAnalyzing(true)
     
-    // Mock API call - replace with actual AI service
-    setTimeout(() => {
-      setDiagnosis({
-        condition: "Upper Respiratory Infection",
-        confidence: 85,
-        description: "Based on the symptoms provided, you may have an upper respiratory infection, commonly known as a cold. This is a viral infection that affects the nose, throat, and sinuses.",
-        symptoms: ["Runny nose", "Sore throat", "Cough", "Mild fever"],
-        recommendations: [
-          "Get plenty of rest",
-          "Stay hydrated",
-          "Use a humidifier",
-          "Consider over-the-counter pain relievers"
-        ],
-        severity: "Mild",
-        urgency: "Low",
-        followUp: "If symptoms worsen or persist for more than 10 days, consult a doctor"
-      })
+    try {
+      const imageUrl = uploadedImage ? URL.createObjectURL(uploadedImage) : undefined
+      const { data, error } = await createDiagnosis(profile.id, symptoms, imageUrl)
+      
+      if (error) {
+        throw error
+      }
+
+      setDiagnosis(data.aiResponse)
+      setUsageCount(prev => prev + 1)
+    } catch (error) {
+      console.error('AI Diagnosis error:', error)
+      alert('Failed to generate diagnosis. Please try again later.')
+    } finally {
       setIsAnalyzing(false)
-      setSearchCount(prev => prev + 1)
-    }, 3000)
+    }
   }
 
   const handleConsultDoctor = () => {
-    // Navigate to doctors page
     window.location.href = '/doctors'
   }
 
@@ -72,6 +95,8 @@ const AIDiagnosis = () => {
     "Headache", "Fever", "Cough", "Sore throat", "Fatigue", 
     "Nausea", "Dizziness", "Chest pain", "Shortness of breath", "Back pain"
   ]
+
+  const canUseAI = profile && (profile.membership_type === 'premium' || usageCount < 3)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -90,25 +115,45 @@ const AIDiagnosis = () => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Usage Counter */}
-        <div className="mb-6">
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+        {profile && (
+          <div className="mb-6">
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Activity className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-900">
+                      {profile.membership_type === 'premium' 
+                        ? 'Unlimited AI diagnoses (Premium)' 
+                        : `Free searches used: ${usageCount}/3 this month`
+                      }
+                    </span>
+                  </div>
+                  {profile.membership_type === 'free' && usageCount >= 3 && (
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      Upgrade Plan
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {!profile && (
+          <div className="mb-6">
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
-                  <Activity className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-900">
-                    Free searches used: {searchCount}/3 this month
+                  <AlertCircle className="h-5 w-5 text-yellow-600" />
+                  <span className="text-sm font-medium text-yellow-900">
+                    Please <a href="/login" className="text-blue-600 hover:underline">login</a> to use AI diagnosis
                   </span>
                 </div>
-                {searchCount >= 3 && (
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                    Upgrade Plan
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Input Section */}
@@ -200,7 +245,7 @@ const AIDiagnosis = () => {
 
             <Button
               onClick={handleAnalyze}
-              disabled={isAnalyzing || searchCount > 3}
+              disabled={isAnalyzing || !canUseAI || !profile}
               className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               {isAnalyzing ? (
@@ -216,7 +261,7 @@ const AIDiagnosis = () => {
               )}
             </Button>
 
-            {searchCount > 3 && (
+            {!canUseAI && profile && (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <div className="flex items-center space-x-2">
                   <AlertCircle className="h-5 w-5 text-yellow-600" />
@@ -256,10 +301,10 @@ const AIDiagnosis = () => {
                       <div className="flex-1 bg-gray-200 rounded-full h-2">
                         <div 
                           className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${diagnosis.confidence}%` }}
+                          style={{ width: `${diagnosis.confidence_level}%` }}
                         ></div>
                       </div>
-                      <span className="text-sm font-medium">{diagnosis.confidence}%</span>
+                      <span className="text-sm font-medium">{diagnosis.confidence_level}%</span>
                     </div>
                     <p className="text-gray-700">{diagnosis.description}</p>
                   </div>
@@ -268,7 +313,7 @@ const AIDiagnosis = () => {
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2">Related Symptoms:</h4>
                     <div className="flex flex-wrap gap-2">
-                      {diagnosis.symptoms.map((symptom: string, index: number) => (
+                      {diagnosis.symptoms?.map((symptom: string, index: number) => (
                         <Badge key={index} variant="outline">
                           {symptom}
                         </Badge>
@@ -280,7 +325,7 @@ const AIDiagnosis = () => {
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2">Recommendations:</h4>
                     <ul className="space-y-2">
-                      {diagnosis.recommendations.map((rec: string, index: number) => (
+                      {diagnosis.recommendations?.map((rec: string, index: number) => (
                         <li key={index} className="flex items-start space-x-2">
                           <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                           <span className="text-sm text-gray-700">{rec}</span>
@@ -295,7 +340,7 @@ const AIDiagnosis = () => {
                       <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
                       <div>
                         <h4 className="font-semibold text-blue-900 mb-1">Follow-up Advice:</h4>
-                        <p className="text-sm text-blue-800">{diagnosis.followUp}</p>
+                        <p className="text-sm text-blue-800">{diagnosis.when_to_consult}</p>
                       </div>
                     </div>
                   </div>
@@ -342,7 +387,7 @@ const AIDiagnosis = () => {
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                        <Eye className="h-4 w-4 text-purple-600" />
+                        <Camera className="h-4 w-4 text-purple-600" />
                       </div>
                       <span className="text-sm text-gray-700">Image analysis support</span>
                     </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react'
-import { supabase, type Profile, type UserRole, getCurrentProfile, getCurrentUser } from '@/lib/supabase'
+import { supabase, type Profile, type UserRole, signIn as supabaseSignIn, signUp as supabaseSignUp, signOut as supabaseSignOut, getCurrentUser } from '@/lib/supabase'
 
 interface AuthContextType {
   user: any | null
@@ -32,29 +32,22 @@ export function useAuthProvider() {
     if (currentUser) {
       setUser(currentUser)
       setProfile(currentUser)
-      setLoading(false)
-    } else {
-      setLoading(false)
     }
+    setLoading(false)
   }, [])
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data: user, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .eq('password_hash', password)
-        .single()
+      const { data, error } = await supabaseSignIn(email, password)
       
-      if (error || !user) {
-        return { error: { message: 'Invalid email or password' } }
+      if (error) {
+        return { error }
       }
 
-      // Store user in localStorage
-      localStorage.setItem('currentUser', JSON.stringify(user))
-      setUser(user)
-      setProfile(user)
+      if (data?.user) {
+        setUser(data.user)
+        setProfile(data.user)
+      }
       
       return { error: null }
     } catch (error) {
@@ -64,49 +57,10 @@ export function useAuthProvider() {
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
-      const userId = crypto.randomUUID()
-      
-      const { error } = await supabase
-        .from('users')
-        .insert([{
-          id: userId,
-          email,
-          password_hash: password,
-          full_name: userData.full_name,
-          phone: userData.phone,
-          role: userData.role || 'patient',
-          is_verified: userData.role === 'admin',
-          membership_type: 'free',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }])
+      const { data, error } = await supabaseSignUp(email, password, userData)
       
       if (error) {
         return { error }
-      }
-
-      // If doctor, create doctor profile
-      if (userData.role === 'doctor') {
-        await supabase
-          .from('doctors')
-          .insert([{
-            id: crypto.randomUUID(),
-            user_id: userId,
-            specialization: userData.specialization || 'General Medicine',
-            experience_years: parseInt(userData.experienceYears) || 1,
-            qualification: userData.qualification || 'MBBS',
-            license_number: userData.licenseNumber || `LIC${Date.now()}`,
-            consultation_fee: 500,
-            city: userData.city || 'Mumbai',
-            hospital_name: userData.hospitalName,
-            bio: userData.bio,
-            is_verified: false,
-            is_online: false,
-            rating: 0,
-            total_consultations: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }])
       }
       
       return { error: null }
@@ -116,7 +70,7 @@ export function useAuthProvider() {
   }
 
   const signOut = async () => {
-    localStorage.removeItem('currentUser')
+    await supabaseSignOut()
     setUser(null)
     setProfile(null)
   }

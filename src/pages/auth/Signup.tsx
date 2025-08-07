@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/hooks/useAuth'
-import { Eye, EyeOff, Loader2, User, Stethoscope } from 'lucide-react'
+import { Eye, EyeOff, Loader2, User, Stethoscope, Heart } from 'lucide-react'
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -22,7 +22,8 @@ const Signup = () => {
     qualification: '',
     licenseNumber: '',
     city: '',
-    hospitalName: ''
+    hospitalName: '',
+    bio: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -32,7 +33,7 @@ const Signup = () => {
   const { signUp } = useAuth()
   const navigate = useNavigate()
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -64,12 +65,22 @@ const Signup = () => {
         city: formData.city
       }
 
+      // Add doctor-specific fields
+      if (formData.role === 'doctor') {
+        userData.specialization = formData.specialization
+        userData.experienceYears = formData.experienceYears
+        userData.qualification = formData.qualification
+        userData.licenseNumber = formData.licenseNumber
+        userData.hospitalName = formData.hospitalName
+        userData.bio = formData.bio
+      }
+
       const { error } = await signUp(formData.email, formData.password, userData)
       if (error) {
-        setError(error.message)
+        setError(error.message || 'Registration failed')
       } else {
-        // If doctor, additional profile will be created by admin
-        navigate('/')
+        alert('Registration successful! Please login to continue.')
+        navigate('/login')
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -78,16 +89,31 @@ const Signup = () => {
     }
   }
 
+  const specializations = [
+    'General Medicine',
+    'Cardiology',
+    'Dermatology',
+    'Neurology',
+    'Orthopedics',
+    'Pediatrics',
+    'Psychiatry',
+    'Gynecology',
+    'Ophthalmology',
+    'ENT',
+    'Oncology',
+    'Endocrinology'
+  ]
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
-            <img src="/logo.png" alt="SensiDoc Logo" className="h-10 w-10 mx-auto" />
+            <Heart className="h-10 w-10 text-blue-600" />
             <span className="text-2xl font-bold">
-              <span className="text-blue-400">Sensi</span>
-              <span className="text-purple-400">Doc</span>
+              <span className="text-blue-600">Sensi</span>
+              <span className="text-purple-600">Doc</span>
             </span>
           </Link>
         </div>
@@ -120,7 +146,7 @@ const Signup = () => {
                 )}
 
                 {/* Common Fields */}
-                <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullName">Full Name</Label>
                     <Input
@@ -207,81 +233,104 @@ const Signup = () => {
                 </div>
 
                 {/* Doctor Specific Fields */}
-                <TabsContent value="doctor" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-1 gap-4">
+                {formData.role === 'doctor' && (
+                  <div className="space-y-4 pt-4 border-t">
                     <div className="space-y-2">
                       <Label htmlFor="specialization">Specialization</Label>
-                      <Input
+                      <select
                         id="specialization"
                         name="specialization"
-                        placeholder="e.g., Cardiology, Dermatology"
                         value={formData.specialization}
                         onChange={handleInputChange}
                         required={formData.role === 'doctor'}
-                      />
+                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select specialization</option>
+                        {specializations.map((spec) => (
+                          <option key={spec} value={spec}>{spec}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="experienceYears">Experience (Years)</Label>
+                        <Input
+                          id="experienceYears"
+                          name="experienceYears"
+                          type="number"
+                          placeholder="Years"
+                          value={formData.experienceYears}
+                          onChange={handleInputChange}
+                          required={formData.role === 'doctor'}
+                          min="0"
+                          max="50"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="qualification">Qualification</Label>
+                        <Input
+                          id="qualification"
+                          name="qualification"
+                          placeholder="e.g., MBBS, MD"
+                          value={formData.qualification}
+                          onChange={handleInputChange}
+                          required={formData.role === 'doctor'}
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="experienceYears">Years of Experience</Label>
-                      <Input
-                        id="experienceYears"
-                        name="experienceYears"
-                        type="number"
-                        placeholder="Enter years of experience"
-                        value={formData.experienceYears}
-                        onChange={handleInputChange}
-                        required={formData.role === 'doctor'}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="qualification">Qualification</Label>
-                      <Input
-                        id="qualification"
-                        name="qualification"
-                        placeholder="e.g., MBBS, MD"
-                        value={formData.qualification}
-                        onChange={handleInputChange}
-                        required={formData.role === 'doctor'}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="licenseNumber">License Number</Label>
+                      <Label htmlFor="licenseNumber">Medical License Number</Label>
                       <Input
                         id="licenseNumber"
                         name="licenseNumber"
-                        placeholder="Enter medical license number"
+                        placeholder="Enter license number"
                         value={formData.licenseNumber}
                         onChange={handleInputChange}
                         required={formData.role === 'doctor'}
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        name="city"
-                        placeholder="Enter your city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        required={formData.role === 'doctor'}
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="city">City</Label>
+                        <Input
+                          id="city"
+                          name="city"
+                          placeholder="Your city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          required={formData.role === 'doctor'}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="hospitalName">Hospital/Clinic</Label>
+                        <Input
+                          id="hospitalName"
+                          name="hospitalName"
+                          placeholder="Hospital name"
+                          value={formData.hospitalName}
+                          onChange={handleInputChange}
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="hospitalName">Hospital/Clinic Name (Optional)</Label>
-                      <Input
-                        id="hospitalName"
-                        name="hospitalName"
-                        placeholder="Enter hospital or clinic name"
-                        value={formData.hospitalName}
+                      <Label htmlFor="bio">Bio (Optional)</Label>
+                      <textarea
+                        id="bio"
+                        name="bio"
+                        placeholder="Brief description about yourself"
+                        value={formData.bio}
                         onChange={handleInputChange}
+                        className="w-full h-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                       />
                     </div>
                   </div>
-                </TabsContent>
+                )}
 
                 <div className="flex items-center space-x-2">
                   <input

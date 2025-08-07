@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kovetycgltpnqztxklig.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvdmV0eWNnbHRwbnF6dHhrbGlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzNDcyNzYsImV4cCI6MjA2ODkyMzI3Nn0.Aa0e7elDtFU9K3Hdu2rQ-PYUNv05ixjmLd4rOTbBZJM'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -11,7 +15,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 })
 
 // Types
-export type UserRole = 'patient' | 'doctor' | 'admin' 
+export type UserRole = 'patient' | 'doctor' | 'admin'
 export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'rejected'
 export type ConsultationType = 'chat' | 'video' | 'visit'
 export type MembershipType = 'free' | 'premium'
@@ -19,7 +23,7 @@ export type MembershipType = 'free' | 'premium'
 export interface Profile {
   id: string
   email: string
-  full_name: string 
+  full_name: string
   phone?: string
   role: UserRole
   membership_type: MembershipType
@@ -30,7 +34,7 @@ export interface Profile {
 
 export interface Doctor {
   id: string
-  user_id: string 
+  user_id: string
   specialization: string
   license_number: string
   qualification: string
@@ -46,11 +50,12 @@ export interface Doctor {
   profile_image?: string
   created_at: string
   updated_at: string
+  profile?: Profile
 }
 
 export interface Appointment {
   id: string
-  patient_id: string 
+  patient_id: string
   doctor_id: string
   appointment_date: string
   appointment_time: string
@@ -58,15 +63,16 @@ export interface Appointment {
   status: AppointmentStatus
   symptoms?: string
   notes?: string
-  prescription?: string 
+  prescription?: string
   created_at: string
   updated_at: string
+  patient?: Profile
+  doctor?: Doctor
 }
 
 // Auth functions
 export const signUp = async (email: string, password: string, userData: any) => {
   try {
-    // Create user in users table directly
     const userId = crypto.randomUUID()
     
     const { error } = await supabase
@@ -74,11 +80,11 @@ export const signUp = async (email: string, password: string, userData: any) => 
       .insert([{
         id: userId,
         email,
-        password_hash: password, // In real app, this should be hashed
+        password_hash: password,
         full_name: userData.full_name,
         phone: userData.phone,
         role: userData.role || 'patient',
-        is_verified: userData.role === 'admin', // Auto-verify admin
+        is_verified: userData.role === 'admin',
         membership_type: 'free',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -128,7 +134,7 @@ export const signIn = async (email: string, password: string) => {
       .from('users')
       .select('*')
       .eq('email', email)
-      .eq('password_hash', password) // In real app, compare hashed passwords
+      .eq('password_hash', password)
       .single()
     
     if (error || !user) {
@@ -158,19 +164,6 @@ export const getCurrentUser = () => {
   }
 }
 
-export const getCurrentProfile = async () => {
-  const user = getCurrentUser()
-  if (!user) return { data: null, error: null }
-
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  return { data, error }
-}
-
 // Doctor functions
 export const getDoctors = async (filters: any = {}) => {
   let query = supabase
@@ -178,7 +171,7 @@ export const getDoctors = async (filters: any = {}) => {
     .select(`
       *,
       profile:users!doctors_user_id_fkey(*)
-    `) 
+    `)
     .eq('is_verified', true)
     .order('rating', { ascending: false })
 
@@ -186,8 +179,12 @@ export const getDoctors = async (filters: any = {}) => {
     query = query.eq('specialization', filters.specialization)
   }
 
-  if (filters.city) { 
+  if (filters.city) {
     query = query.ilike('city', `%${filters.city}%`)
+  }
+
+  if (filters.is_online !== undefined) {
+    query = query.eq('is_online', filters.is_online)
   }
 
   const { data, error } = await query
@@ -207,7 +204,7 @@ export const getDoctorById = async (id: string) => {
   return { data, error }
 }
 
-export const createDoctor = async (doctorData: any) => { 
+export const createDoctor = async (doctorData: any) => {
   const { data, error } = await supabase
     .from('doctors')
     .insert([doctorData])
@@ -217,10 +214,10 @@ export const createDoctor = async (doctorData: any) => {
   return { data, error }
 }
 
-export const updateDoctor = async (id: string, updates: any) => { 
+export const updateDoctor = async (id: string, updates: any) => {
   const { data, error } = await supabase
     .from('doctors')
-    .update(updates)
+    .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
     .single()
@@ -244,7 +241,7 @@ export const createAppointment = async (appointmentData: any) => {
   return { data, error }
 }
 
-export const getAppointments = async (userId: string, role: UserRole) => { 
+export const getAppointments = async (userId: string, role: UserRole) => {
   let query = supabase
     .from('appointments')
     .select(`
@@ -256,7 +253,7 @@ export const getAppointments = async (userId: string, role: UserRole) => {
     .order('appointment_time', { ascending: false })
 
   if (role === 'patient') {
-    query = query.eq('patient_id', userId) 
+    query = query.eq('patient_id', userId)
   } else if (role === 'doctor') {
     // Get doctor ID first
     const { data: doctor } = await supabase
@@ -274,7 +271,7 @@ export const getAppointments = async (userId: string, role: UserRole) => {
   return { data, error }
 }
 
-export const updateAppointmentStatus = async (id: string, status: AppointmentStatus, updates: any = {}) => { 
+export const updateAppointmentStatus = async (id: string, status: AppointmentStatus, updates: any = {}) => {
   const { data, error } = await supabase
     .from('appointments')
     .update({ status, ...updates, updated_at: new Date().toISOString() })
@@ -287,18 +284,31 @@ export const updateAppointmentStatus = async (id: string, status: AppointmentSta
 
 // Specialization functions
 export const getSpecializations = async () => {
-  const mockSpecializations = [
-    { id: '1', name: 'Cardiology', description: 'Heart and cardiovascular system', is_active: true },
-    { id: '2', name: 'Dermatology', description: 'Skin, hair, and nails', is_active: true },
-    { id: '3', name: 'Neurology', description: 'Brain and nervous system', is_active: true },
-    { id: '4', name: 'Orthopedics', description: 'Bones, joints, and muscles', is_active: true },
-    { id: '5', name: 'Pediatrics', description: 'Children\'s health', is_active: true },
-    { id: '6', name: 'Psychiatry', description: 'Mental health', is_active: true },
-    { id: '7', name: 'General Medicine', description: 'General healthcare', is_active: true },
-    { id: '8', name: 'Gynecology', description: 'Women\'s health', is_active: true }
-  ]
-  
-  return { data: mockSpecializations, error: null }
+  const { data: doctors, error } = await supabase
+    .from('doctors')
+    .select('specialization')
+    .eq('is_verified', true)
+
+  if (error) return { data: [], error }
+
+  // Get unique specializations with counts
+  const specializationCounts = doctors?.reduce((acc: any, doctor) => {
+    const spec = doctor.specialization
+    acc[spec] = (acc[spec] || 0) + 1
+    return acc
+  }, {})
+
+  const specializations = Object.entries(specializationCounts || {})
+    .map(([name, count], index) => ({ 
+      id: (index + 1).toString(), 
+      name, 
+      count,
+      description: `${name} specialists`,
+      is_active: true 
+    }))
+    .sort((a, b) => (b.count as number) - (a.count as number))
+
+  return { data: specializations, error: null }
 }
 
 // Admin functions
@@ -372,4 +382,90 @@ export const updateUserMembership = async (id: string, membershipType: Membershi
     .eq('id', id)
 
   return { data, error }
+}
+
+// AI Services
+export const createDiagnosis = async (patientId: string, inputText: string, inputImage?: string) => {
+  const diagnosisId = crypto.randomUUID()
+  
+  // Mock AI response - replace with actual AI service
+  const aiResponse = {
+    condition: "Upper Respiratory Infection",
+    confidence_level: 85,
+    description: "Based on the symptoms provided, you may have an upper respiratory infection.",
+    symptoms: ["Runny nose", "Sore throat", "Cough"],
+    recommendations: ["Get plenty of rest", "Stay hydrated", "Use a humidifier"],
+    severity: "Mild",
+    when_to_consult: "If symptoms worsen or persist for more than 10 days"
+  }
+
+  const { data, error } = await supabase
+    .from('diagnosis')
+    .insert([{
+      id: diagnosisId,
+      patient_id: patientId,
+      input_text: inputText,
+      input_image: inputImage,
+      ai_response: JSON.stringify(aiResponse),
+      condition: aiResponse.condition,
+      confidence_level: aiResponse.confidence_level,
+      recommendations: aiResponse.recommendations,
+      created_at: new Date().toISOString()
+    }])
+    .select()
+    .single()
+
+  return { data: { ...data, aiResponse }, error }
+}
+
+export const createDrugAnalysis = async (userId: string, drugName?: string, drugImage?: string) => {
+  const analysisId = crypto.randomUUID()
+  
+  // Mock AI response - replace with actual AI service
+  const aiResponse = {
+    drug_name: drugName || "Paracetamol",
+    generic_name: "Acetaminophen",
+    uses: ["Pain relief", "Fever reduction"],
+    dosage: "500mg every 6 hours",
+    side_effects: ["Nausea", "Liver damage with overdose"],
+    warnings: ["Do not exceed 4g per day", "Avoid alcohol"],
+    interactions: ["Warfarin", "Alcohol"],
+    contraindications: ["Liver disease", "Alcohol dependency"]
+  }
+
+  const { data, error } = await supabase
+    .from('drug_analysis')
+    .insert([{
+      id: analysisId,
+      user_id: userId,
+      drug_name: drugName || aiResponse.drug_name,
+      drug_image: drugImage,
+      analysis_result: JSON.stringify(aiResponse),
+      uses: aiResponse.uses,
+      side_effects: aiResponse.side_effects,
+      dosage: aiResponse.dosage,
+      warnings: aiResponse.warnings,
+      created_at: new Date().toISOString()
+    }])
+    .select()
+    .single()
+
+  return { data: { ...data, aiResponse }, error }
+}
+
+// Get user's AI usage count for the current month
+export const getAIUsageCount = async (userId: string, type: 'diagnosis' | 'drug_analysis') => {
+  const currentMonth = new Date().toISOString().slice(0, 7)
+  
+  const table = type === 'diagnosis' ? 'diagnosis' : 'drug_analysis'
+  const userIdField = type === 'diagnosis' ? 'patient_id' : 'user_id'
+  
+  const { count } = await supabase
+    .from(table)
+    .select('id', { count: 'exact' })
+    .eq(userIdField, userId)
+    .gte('created_at', `${currentMonth}-01`)
+    .lt('created_at', `${currentMonth}-32`)
+
+  return count || 0
 }

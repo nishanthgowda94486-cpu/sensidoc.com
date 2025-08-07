@@ -9,13 +9,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { 
   Calendar, 
   Clock, 
-  User, 
   Heart,
   Brain,
   Pill,
   FileText,
   Activity,
-  Phone,
   Video,
   MessageCircle,
   Star,
@@ -24,7 +22,7 @@ import {
   Plus,
   Eye
 } from 'lucide-react'
-import { getAppointments } from '@/lib/supabase'
+import { getAppointments, getAIUsageCount } from '@/lib/supabase'
 
 const PatientDashboard = () => {
   const { profile, loading } = useAuth()
@@ -33,7 +31,7 @@ const PatientDashboard = () => {
     totalAppointments: 0,
     upcomingAppointments: 0,
     completedAppointments: 0,
-    aiDiagnosisUsed: 2
+    aiDiagnosisUsed: 0
   })
   const [activeTab, setActiveTab] = useState('overview')
   const [isLoading, setIsLoading] = useState(true)
@@ -53,6 +51,9 @@ const PatientDashboard = () => {
       const appointmentsData = await getAppointments(profile.id, 'patient')
       setAppointments(appointmentsData.data || [])
 
+      // Load AI usage count
+      const aiUsageCount = await getAIUsageCount(profile.id, 'diagnosis')
+
       // Calculate stats
       const appointments = appointmentsData.data || []
       const upcoming = appointments.filter(a => 
@@ -65,7 +66,7 @@ const PatientDashboard = () => {
         totalAppointments: appointments.length,
         upcomingAppointments: upcoming.length,
         completedAppointments: completed.length,
-        aiDiagnosisUsed: 2
+        aiDiagnosisUsed: aiUsageCount
       })
     } catch (error) {
       console.error('Error loading patient data:', error)
@@ -74,10 +75,13 @@ const PatientDashboard = () => {
     }
   }
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
       </div>
     )
   }
@@ -91,10 +95,6 @@ const PatientDashboard = () => {
     ['pending', 'confirmed'].includes(a.status)
   ).sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())
 
-  const recentAppointments = appointments.filter(a => a.status === 'completed')
-    .sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime())
-    .slice(0, 5)
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -104,7 +104,7 @@ const PatientDashboard = () => {
             <div className="flex items-center space-x-4">
               <Avatar className="h-12 w-12">
                 <AvatarImage src="" />
-                <AvatarFallback>{profile.full_name.charAt(0)}</AvatarFallback>
+                <AvatarFallback>{profile.full_name?.charAt(0) || 'P'}</AvatarFallback>
               </Avatar>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Welcome, {profile.full_name}</h1>
@@ -168,7 +168,9 @@ const PatientDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-purple-100">AI Diagnosis</p>
-                      <p className="text-3xl font-bold">{stats.aiDiagnosisUsed}/3</p>
+                      <p className="text-3xl font-bold">
+                        {profile.membership_type === 'premium' ? '∞' : `${stats.aiDiagnosisUsed}/3`}
+                      </p>
                     </div>
                     <Brain className="h-12 w-12 text-purple-200" />
                   </div>

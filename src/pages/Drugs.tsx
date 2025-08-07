@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,13 +17,31 @@ import {
   FileText,
   Activity
 } from 'lucide-react'
+import { createDrugAnalysis, getAIUsageCount } from '@/lib/supabase'
 
 const Drugs = () => {
+  const { profile } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
   const [uploadedImage, setUploadedImage] = useState<File | null>(null)
   const [isSearching, setIsSearching] = useState(false)
   const [drugInfo, setDrugInfo] = useState<any>(null)
-  const [searchCount, setSearchCount] = useState(1)
+  const [usageCount, setUsageCount] = useState(0)
+
+  React.useEffect(() => {
+    if (profile) {
+      loadUsageCount()
+    }
+  }, [profile])
+
+  const loadUsageCount = async () => {
+    if (!profile) return
+    try {
+      const count = await getAIUsageCount(profile.id, 'drug_analysis')
+      setUsageCount(count)
+    } catch (error) {
+      console.error('Error loading usage count:', error)
+    }
+  }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -37,62 +56,43 @@ const Drugs = () => {
       return
     }
 
+    if (!profile) {
+      alert('Please login to use drug analysis')
+      return
+    }
+
+    // Check usage limits for free users
+    if (profile.membership_type === 'free' && usageCount >= 3) {
+      alert('You have reached your free limit. Please upgrade to premium for unlimited access.')
+      return
+    }
+
     setIsSearching(true)
     
-    // Mock API call - replace with actual drug database API
-    setTimeout(() => {
-      setDrugInfo({
-        name: searchTerm || "Ibuprofen",
-        genericName: "Ibuprofen",
-        brandNames: ["Advil", "Motrin", "Nurofen"],
-        category: "NSAID (Non-Steroidal Anti-Inflammatory Drug)",
-        strength: "200mg, 400mg, 600mg",
-        form: "Tablet, Capsule, Liquid",
-        uses: [
-          "Pain relief",
-          "Fever reduction",
-          "Inflammation reduction",
-          "Headache treatment",
-          "Muscle pain relief"
-        ],
-        dosage: {
-          adults: "200-400mg every 4-6 hours, maximum 1200mg per day",
-          children: "5-10mg/kg every 6-8 hours"
-        },
-        sideEffects: {
-          common: ["Stomach upset", "Nausea", "Dizziness", "Headache"],
-          serious: ["Stomach bleeding", "Kidney problems", "Heart problems", "Allergic reactions"]
-        },
-        contraindications: [
-          "Allergy to NSAIDs",
-          "Active stomach ulcers",
-          "Severe kidney disease",
-          "Heart failure"
-        ],
-        interactions: [
-          "Blood thinners (Warfarin)",
-          "ACE inhibitors",
-          "Lithium",
-          "Methotrexate"
-        ],
-        warnings: [
-          "Take with food to reduce stomach irritation",
-          "Do not exceed recommended dose",
-          "Consult doctor if symptoms persist",
-          "Avoid alcohol while taking this medication"
-        ],
-        pregnancy: "Category C - Use only if benefits outweigh risks",
-        storage: "Store at room temperature, away from moisture and heat"
-      })
+    try {
+      const imageUrl = uploadedImage ? URL.createObjectURL(uploadedImage) : undefined
+      const { data, error } = await createDrugAnalysis(profile.id, searchTerm, imageUrl)
+      
+      if (error) {
+        throw error
+      }
+
+      setDrugInfo(data.aiResponse)
+      setUsageCount(prev => prev + 1)
+    } catch (error) {
+      console.error('Drug analysis error:', error)
+      alert('Failed to analyze drug. Please try again later.')
+    } finally {
       setIsSearching(false)
-      setSearchCount(prev => prev + 1)
-    }, 2000)
+    }
   }
 
   const popularDrugs = [
     "Paracetamol", "Ibuprofen", "Aspirin", "Amoxicillin", 
     "Omeprazole", "Metformin", "Atorvastatin", "Lisinopril"
   ]
+
+  const canUseAI = profile && (profile.membership_type === 'premium' || usageCount < 3)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -111,25 +111,45 @@ const Drugs = () => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Usage Counter */}
-        <div className="mb-6">
-          <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+        {profile && (
+          <div className="mb-6">
+            <Card className="border-orange-200 bg-orange-50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Activity className="h-5 w-5 text-orange-600" />
+                    <span className="text-sm font-medium text-orange-900">
+                      {profile.membership_type === 'premium' 
+                        ? 'Unlimited drug analyses (Premium)' 
+                        : `Free searches used: ${usageCount}/3 this month`
+                      }
+                    </span>
+                  </div>
+                  {profile.membership_type === 'free' && usageCount >= 3 && (
+                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
+                      Upgrade Plan
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {!profile && (
+          <div className="mb-6">
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
-                  <Activity className="h-5 w-5 text-orange-600" />
-                  <span className="text-sm font-medium text-orange-900">
-                    Free searches used: {searchCount}/3 this month
+                  <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                  <span className="text-sm font-medium text-yellow-900">
+                    Please <a href="/login" className="text-blue-600 hover:underline">login</a> to use drug analysis
                   </span>
                 </div>
-                {searchCount >= 3 && (
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
-                    Upgrade Plan
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Search Section */}
@@ -210,7 +230,7 @@ const Drugs = () => {
 
                 <Button
                   onClick={handleSearch}
-                  disabled={isSearching || searchCount > 3}
+                  disabled={isSearching || !canUseAI || !profile}
                   className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
                 >
                   {isSearching ? (
@@ -238,79 +258,25 @@ const Drugs = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Pill className="h-5 w-5 mr-2" />
-                      {drugInfo.name}
+                      {drugInfo.drug_name}
                     </CardTitle>
-                    <CardDescription>{drugInfo.category}</CardDescription>
+                    <CardDescription>Generic: {drugInfo.generic_name}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium">Generic Name:</span>
-                        <p className="text-gray-600">{drugInfo.genericName}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Strength:</span>
-                        <p className="text-gray-600">{drugInfo.strength}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Form:</span>
-                        <p className="text-gray-600">{drugInfo.form}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Pregnancy:</span>
-                        <p className="text-gray-600">{drugInfo.pregnancy}</p>
-                      </div>
-                    </div>
-
                     <div>
-                      <span className="font-medium text-sm">Brand Names:</span>
+                      <span className="font-medium text-sm">Uses:</span>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {drugInfo.brandNames.map((brand: string, index: number) => (
+                        {drugInfo.uses?.map((use: string, index: number) => (
                           <Badge key={index} variant="outline" className="text-xs">
-                            {brand}
+                            {use}
                           </Badge>
                         ))}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
 
-                {/* Uses */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-lg">
-                      <Info className="h-5 w-5 mr-2" />
-                      Uses
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {drugInfo.uses.map((use: string, index: number) => (
-                        <li key={index} className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span className="text-sm">{use}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                {/* Dosage */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-lg">
-                      <Clock className="h-5 w-5 mr-2" />
-                      Dosage
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
                     <div>
-                      <span className="font-medium text-sm">Adults:</span>
-                      <p className="text-sm text-gray-600">{drugInfo.dosage.adults}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-sm">Children:</span>
-                      <p className="text-sm text-gray-600">{drugInfo.dosage.children}</p>
+                      <span className="font-medium text-sm">Dosage:</span>
+                      <p className="text-sm text-gray-600">{drugInfo.dosage}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -323,26 +289,13 @@ const Drugs = () => {
                       Side Effects
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="font-medium text-sm">Common:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {drugInfo.sideEffects.common.map((effect: string, index: number) => (
-                          <Badge key={index} variant="outline" className="text-xs bg-yellow-50">
-                            {effect}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-sm">Serious:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {drugInfo.sideEffects.serious.map((effect: string, index: number) => (
-                          <Badge key={index} variant="destructive" className="text-xs">
-                            {effect}
-                          </Badge>
-                        ))}
-                      </div>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-1">
+                      {drugInfo.side_effects?.map((effect: string, index: number) => (
+                        <Badge key={index} variant="outline" className="text-xs bg-yellow-50">
+                          {effect}
+                        </Badge>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -357,7 +310,7 @@ const Drugs = () => {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
-                      {drugInfo.warnings.map((warning: string, index: number) => (
+                      {drugInfo.warnings?.map((warning: string, index: number) => (
                         <li key={index} className="flex items-start space-x-2">
                           <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                           <span className="text-sm text-red-800">{warning}</span>
@@ -366,6 +319,27 @@ const Drugs = () => {
                     </ul>
                   </CardContent>
                 </Card>
+
+                {/* Interactions */}
+                {drugInfo.interactions && drugInfo.interactions.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center text-lg">
+                        <Info className="h-5 w-5 mr-2" />
+                        Drug Interactions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-1">
+                        {drugInfo.interactions.map((interaction: string, index: number) => (
+                          <Badge key={index} variant="outline" className="text-xs bg-blue-50">
+                            {interaction}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             ) : (
               <Card>
