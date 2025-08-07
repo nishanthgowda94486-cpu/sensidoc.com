@@ -1,4 +1,4 @@
-import React from 'react'
+// ...existing code...
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import Header from '@/components/layout/Header'
@@ -16,6 +16,8 @@ import Contact from '@/pages/Contact'
 import TermsOfService from '@/pages/legal/TermsOfService'
 import PrivacyPolicy from '@/pages/legal/PrivacyPolicy'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
+import AdminLogin from '@/pages/admin/Login'
+import DoctorLogin from '@/pages/doctor/Login'
 import DoctorDashboard from '@/pages/doctor/DoctorDashboard'
 import PatientDashboard from '@/pages/patient/PatientDashboard'
 import AuthProvider from '@/components/AuthProvider'
@@ -31,6 +33,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/doctor/login" element={<DoctorLogin />} />
               <Route path="/ai-diagnosis" element={<AIDiagnosis />} />
               <Route path="/doctors" element={<Doctors />} />
               <Route path="/drugs" element={<Drugs />} />

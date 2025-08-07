@@ -7,7 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/hooks/useAuth'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
-const Login = () => {
+interface LoginProps {
+  role?: 'admin' | 'doctor' | 'patient';
+}
+
+const Login: React.FC<LoginProps> = ({ role }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -27,8 +31,14 @@ const Login = () => {
       if (error) {
         setError(error.message || 'Login failed')
       } else {
-        // Redirect based on user role will be handled by DashboardRouter
-        navigate('/')
+        // Redirect based on user role and login page
+        if (role === 'admin') {
+          navigate('/admin/dashboard')
+        } else if (role === 'doctor') {
+          navigate('/doctor/dashboard')
+        } else {
+          navigate('/dashboard')
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -145,15 +155,27 @@ const Login = () => {
               </p>
             </div>
 
-            {/* Admin Login Link */}
-            <div className="mt-4 pt-4 border-t text-center">
-              <Link
-                to="/admin/login"
-                className="text-xs text-gray-500 hover:text-gray-700"
-              >
-                Admin Login
-              </Link>
-            </div>
+            {/* Admin/Doctor Login Links */}
+            {role !== 'admin' && (
+              <div className="mt-4 pt-4 border-t text-center">
+                <Link
+                  to="/admin/login"
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Admin Login
+                </Link>
+              </div>
+            )}
+            {role !== 'doctor' && (
+              <div className="mt-2 text-center">
+                <Link
+                  to="/doctor/login"
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Doctor Login
+                </Link>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
