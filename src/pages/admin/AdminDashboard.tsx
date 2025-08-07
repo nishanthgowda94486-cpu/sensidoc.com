@@ -43,7 +43,6 @@ import {
   updateUserMembership, 
   getSpecializations,
   createDoctor,
-  signUp,
   getAppointments
 } from '@/lib/supabase'
 
@@ -65,7 +64,7 @@ const AdminDashboard = () => {
     password: '',
     full_name: '',
     phone: '',
-    specialization_id: '',
+    specialization: '',
     license_number: '',
     qualification: '',
     experience_years: '',
@@ -127,34 +126,45 @@ const AdminDashboard = () => {
   const handleAddDoctor = async (e: React.FormEvent) => {
     e.preventDefault() 
     try {
-      // Create user account
-      const { data: authData, error: authError } = await signUp(
-        doctorForm.email,
-        doctorForm.password,
-        {
+      // Create user first
+      const userId = crypto.randomUUID()
+      
+      const { error: userError } = await supabase
+        .from('users')
+        .insert([{
+          id: userId,
+          email: doctorForm.email,
+          password_hash: doctorForm.password,
           full_name: doctorForm.full_name,
           phone: doctorForm.phone,
           role: 'doctor',
-          city: doctorForm.city
-        }
-      )
+          is_verified: true,
+          membership_type: 'free',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
 
-      if (authError) throw authError 
+      if (userError) throw userError
 
       // Create doctor profile
-      if (authData.user) {
-        await createDoctor({
-          user_id: authData.user.id,
-          specialization_id: doctorForm.specialization_id,
-          license_number: doctorForm.license_number,
-          qualification: doctorForm.qualification,
-          experience_years: parseInt(doctorForm.experience_years),
-          consultation_fee: parseFloat(doctorForm.consultation_fee),
-          hospital_name: doctorForm.hospital_name,
-          bio: doctorForm.bio,
-          is_verified: true // Auto-verify admin-added doctors 
-        })
-      }
+      await createDoctor({
+        id: crypto.randomUUID(),
+        user_id: userId,
+        specialization: doctorForm.specialization,
+        license_number: doctorForm.license_number,
+        qualification: doctorForm.qualification,
+        experience_years: parseInt(doctorForm.experience_years),
+        consultation_fee: parseFloat(doctorForm.consultation_fee),
+        hospital_name: doctorForm.hospital_name,
+        bio: doctorForm.bio,
+        city: doctorForm.city,
+        is_verified: true,
+        is_online: false,
+        rating: 0,
+        total_consultations: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
 
       setShowAddDoctor(false)
       setDoctorForm({
@@ -162,7 +172,7 @@ const AdminDashboard = () => {
         password: '',
         full_name: '',
         phone: '',
-        specialization_id: '',
+        specialization: '',
         license_number: '',
         qualification: '',
         experience_years: '',
@@ -172,8 +182,10 @@ const AdminDashboard = () => {
         city: ''
       })
       loadData()
+      alert('Doctor added successfully!')
     } catch (error) {
       console.error('Error adding doctor:', error)
+      alert('Failed to add doctor. Please try again.')
     } 
   }
 
@@ -364,7 +376,6 @@ const AdminDashboard = () => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <Avatar className="h-10 w-10">
-                                <AvatarImage src={user.avatar_url} />
                                 <AvatarFallback>{user.full_name.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <div className="ml-4">
@@ -448,7 +459,7 @@ const AdminDashboard = () => {
                         </Avatar>
                         <div>
                           <h3 className="font-semibold text-gray-900">{doctor.profile?.full_name}</h3>
-                          <p className="text-sm text-gray-500">{doctor.specialization?.name}</p>
+                          <p className="text-sm text-gray-500">{doctor.specialization}</p>
                         </div> 
                       </div>
                       <Badge variant={doctor.is_verified ? 'success' : 'warning'}>
@@ -573,7 +584,7 @@ const AdminDashboard = () => {
                             </Badge>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ₹{appointment.consultation_fee || appointment.doctor?.consultation_fee || 500}
+                            ₹{appointment.doctor?.consultation_fee || 500}
                           </td>
                         </tr>
                       ))}
@@ -684,17 +695,17 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div> 
-                  <Label htmlFor="specialization_id">Specialization</Label>
+                  <Label htmlFor="specialization">Specialization</Label>
                   <select
-                    id="specialization_id"
-                    value={doctorForm.specialization_id}
-                    onChange={(e) => setDoctorForm({...doctorForm, specialization_id: e.target.value})}
+                    id="specialization"
+                    value={doctorForm.specialization}
+                    onChange={(e) => setDoctorForm({...doctorForm, specialization: e.target.value})}
                     className="w-full border rounded-md px-3 py-2"
                     required
                   >
                     <option value="">Select Specialization</option>
                     {specializations.map((spec) => (
-                      <option key={spec.id} value={spec.id}>{spec.name}</option>
+                      <option key={spec.id} value={spec.name}>{spec.name}</option>
                     ))}
                   </select>
                 </div>

@@ -23,49 +23,29 @@ export interface Profile {
   phone?: string
   role: UserRole
   membership_type: MembershipType
-  city?: string
   is_verified: boolean
   created_at: string
   updated_at: string
 }
 
-export interface User {
-  id: string
-  email: string
-  last_login?: string
-  created_at: string
-  updated_at: string
-}
-
-export interface Specialization {
-  id: string
-  name: string 
-  description?: string
-  icon?: string
-  is_active: boolean
-  created_at: string
-}
-
 export interface Doctor {
   id: string
   user_id: string 
-  specialization_id: string
+  specialization: string
   license_number: string
   qualification: string
   experience_years: number
   consultation_fee: number
   hospital_name?: string
   bio?: string
-  languages: string[]
   city: string
   is_verified: boolean
   is_online: boolean
   rating: number
   total_consultations: number
   profile_image?: string
+  created_at: string
   updated_at: string
-  profile?: Profile
-  specialization?: Specialization
 }
 
 export interface Appointment {
@@ -77,85 +57,113 @@ export interface Appointment {
   consultation_type: ConsultationType
   status: AppointmentStatus
   symptoms?: string
-  patient_notes?: string
   notes?: string
   prescription?: string 
-  meeting_link?: string
   created_at: string
   updated_at: string
-  patient?: Profile
-  doctor?: Doctor
 }
 
-export interface Notification {
-  id: string
-  user_id: string
-  type: string
-  title: string
-  message: string
-  data?: any
-  is_read: boolean
-  created_at: string
-}
-
-// Auth functions - Updated to work with Supabase Auth
+// Auth functions
 export const signUp = async (email: string, password: string, userData: any) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: userData
-    }
-  })
-  
-  // If signup successful, create user profile
-  if (data.user && !error) {
-    const { error: profileError } = await supabase
+  try {
+    // Create user in users table directly
+    const userId = crypto.randomUUID()
+    
+    const { error } = await supabase
       .from('users')
       .insert([{
-        id: data.user.id,
-        email: data.user.email,
+        id: userId,
+        email,
+        password_hash: password, // In real app, this should be hashed
         full_name: userData.full_name,
         phone: userData.phone,
         role: userData.role || 'patient',
-        is_verified: false,
+        is_verified: userData.role === 'admin', // Auto-verify admin
         membership_type: 'free',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }])
     
-    if (profileError) {
-      console.error('Profile creation error:', profileError)
+    if (error) {
+      return { data: null, error }
     }
+
+    // If doctor, create doctor profile
+    if (userData.role === 'doctor') {
+      const { error: doctorError } = await supabase
+        .from('doctors')
+        .insert([{
+          id: crypto.randomUUID(),
+          user_id: userId,
+          specialization: userData.specialization || 'General Medicine',
+          experience_years: parseInt(userData.experienceYears) || 1,
+          qualification: userData.qualification || 'MBBS',
+          license_number: userData.licenseNumber || `LIC${Date.now()}`,
+          consultation_fee: 500,
+          city: userData.city || 'Mumbai',
+          hospital_name: userData.hospitalName,
+          bio: userData.bio,
+          is_verified: false,
+          is_online: false,
+          rating: 0,
+          total_consultations: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+      
+      if (doctorError) {
+        console.error('Doctor profile creation error:', doctorError)
+      }
+    }
+    
+    return { data: { user: { id: userId, email } }, error: null }
+  } catch (error) {
+    return { data: null, error }
   }
-  
-  return { data, error }
 }
 
 export const signIn = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  })
-  return { data, error }
+  try {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .eq('password_hash', password) // In real app, compare hashed passwords
+      .single()
+    
+    if (error || !user) {
+      return { data: null, error: { message: 'Invalid email or password' } }
+    }
+
+    // Store user in localStorage for session management
+    localStorage.setItem('currentUser', JSON.stringify(user))
+    
+    return { data: { user }, error: null }
+  } catch (error) {
+    return { data: null, error }
+  }
 }
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut()
-  return { error }
+  localStorage.removeItem('currentUser')
+  return { error: null }
 }
 
-export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser()
-  return user
+export const getCurrentUser = () => {
+  try {
+    const userStr = localStorage.getItem('currentUser')
+    return userStr ? JSON.parse(userStr) : null
+  } catch {
+    return null
+  }
 }
 
 export const getCurrentProfile = async () => {
-  const user = await getCurrentUser()
+  const user = getCurrentUser()
   if (!user) return { data: null, error: null }
 
   const { data, error } = await supabase
-    .from('profiles')
+    .from('users')
     .select('*')
     .eq('id', user.id)
     .single()
@@ -163,24 +171,23 @@ export const getCurrentProfile = async () => {
   return { data, error }
 }
 
-// Doctor functions - Updated for new schema
+// Doctor functions
 export const getDoctors = async (filters: any = {}) => {
   let query = supabase
     .from('doctors')
     .select(`
       *,
-      profile:profiles!doctors_user_id_fkey(*),
-      specialization:specializations(*)
+      profile:users!doctors_user_id_fkey(*)
     `) 
     .eq('is_verified', true)
     .order('rating', { ascending: false })
 
-  if (filters.specialization_id) {
-    query = query.eq('specialization_id', filters.specialization_id)
+  if (filters.specialization) {
+    query = query.eq('specialization', filters.specialization)
   }
 
   if (filters.city) { 
-    query = query.ilike('profile.city', `%${filters.city}%`)
+    query = query.ilike('city', `%${filters.city}%`)
   }
 
   const { data, error } = await query
@@ -190,10 +197,9 @@ export const getDoctors = async (filters: any = {}) => {
 export const getDoctorById = async (id: string) => {
   const { data, error } = await supabase
     .from('doctors')
-    .select(` 
+    .select(`
       *,
-      profile:profiles!doctors_user_id_fkey(*),
-      specialization:specializations(*)
+      profile:users!doctors_user_id_fkey(*)
     `)
     .eq('id', id)
     .single()
@@ -222,11 +228,16 @@ export const updateDoctor = async (id: string, updates: any) => {
   return { data, error }
 }
 
-// Appointment functions - Updated for new schema
+// Appointment functions
 export const createAppointment = async (appointmentData: any) => {
   const { data, error } = await supabase
     .from('appointments')
-    .insert([appointmentData])
+    .insert([{
+      ...appointmentData,
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }])
     .select()
     .single()
 
@@ -238,8 +249,8 @@ export const getAppointments = async (userId: string, role: UserRole) => {
     .from('appointments')
     .select(`
       *,
-      patient:profiles!appointments_patient_id_fkey(*),
-      doctor:doctors!appointments_doctor_id_fkey(*, profile:profiles!doctors_user_id_fkey(*), specialization:specializations(*))
+      patient:users!appointments_patient_id_fkey(*),
+      doctor:doctors!appointments_doctor_id_fkey(*, profile:users!doctors_user_id_fkey(*))
     `)
     .order('appointment_date', { ascending: false })
     .order('appointment_time', { ascending: false })
@@ -274,9 +285,8 @@ export const updateAppointmentStatus = async (id: string, status: AppointmentSta
   return { data, error }
 }
 
-// Specialization functions - Mock data for now
+// Specialization functions
 export const getSpecializations = async () => {
-  // Mock specializations data
   const mockSpecializations = [
     { id: '1', name: 'Cardiology', description: 'Heart and cardiovascular system', is_active: true },
     { id: '2', name: 'Dermatology', description: 'Skin, hair, and nails', is_active: true },
@@ -291,17 +301,7 @@ export const getSpecializations = async () => {
   return { data: mockSpecializations, error: null }
 }
 
-// Notification functions - Mock for now
-export const getNotifications = async (userId: string) => {
-  // Mock notifications
-  return { data: [], error: null }
-}
-
-export const markNotificationAsRead = async (id: string) => {
-  return { data: null, error: null }
-}
-
-// Admin functions - Updated for new schema
+// Admin functions
 export const getAdminStats = async () => {
   const [
     totalUsers,

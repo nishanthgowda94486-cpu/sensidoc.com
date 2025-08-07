@@ -53,7 +53,7 @@ const Doctors = () => {
   const loadDoctors = async () => {
     try {
       const filters: any = {}
-      if (selectedSpecialty) filters.specialization_id = selectedSpecialty
+      if (selectedSpecialty) filters.specialization = selectedSpecialty
       if (showOnlineOnly) filters.is_online = true
       
       const { data } = await getDoctors(filters)
@@ -62,8 +62,8 @@ const Doctors = () => {
       if (searchTerm) {
         filteredData = filteredData.filter((doctor: any) =>
           doctor.profile?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          doctor.specialization?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          doctor.profile?.city?.toLowerCase().includes(searchTerm.toLowerCase())
+          doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          doctor.city.toLowerCase().includes(searchTerm.toLowerCase())
         )
       }
       
@@ -105,7 +105,7 @@ const Doctors = () => {
         appointment_time: bookingData.appointment_time,
         consultation_type: bookingData.consultation_type,
         symptoms: bookingData.symptoms,
-        consultation_fee: selectedDoctor.consultation_fee
+        status: 'pending'
       }
       
       await createAppointment(appointmentData)
@@ -201,15 +201,15 @@ const Doctors = () => {
                     {specializations.map((specialty) => (
                       <button
                         key={specialty.id}
-                        onClick={() => setSelectedSpecialty(specialty.id)}
+                        onClick={() => setSelectedSpecialty(specialty.name)}
                         className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors ${ 
-                          selectedSpecialty === specialty.id
+                          selectedSpecialty === specialty.name
                             ? 'bg-blue-100 text-blue-700 border border-blue-200'
                             : 'hover:bg-gray-100'
                         }`}
                       >
                         <div className="flex items-center">
-                          <span className="text-lg mr-2">{specialty.icon || '🩺'}</span>
+                          <span className="text-lg mr-2">🩺</span>
                           <span className="text-sm">{specialty.name}</span> 
                         </div>
                       </button>
@@ -272,12 +272,12 @@ const Doctors = () => {
                             <div className="space-y-2">
                               <div className="flex items-center text-gray-600">
                                 <Stethoscope className="h-4 w-4 mr-2" /> 
-                                <span>{doctor.specialization?.name} • {doctor.experience_years} years exp.</span>
+                                <span>{doctor.specialization} • {doctor.experience_years} years exp.</span>
                               </div>
 
                               <div className="flex items-center text-gray-600">
                                 <MapPin className="h-4 w-4 mr-2" />
-                                <span>{doctor.profile?.city || 'Location not specified'}</span>
+                                <span>{doctor.city || 'Location not specified'}</span>
                               </div>
 
                               <div className="flex items-center text-gray-600">

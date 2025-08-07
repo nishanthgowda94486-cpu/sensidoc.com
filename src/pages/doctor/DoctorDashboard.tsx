@@ -30,7 +30,7 @@ import {
 import { 
   getAppointments, 
   updateAppointmentStatus, 
-  getDoctorById,
+  getAllDoctors,
   updateDoctor
 } from '@/lib/supabase'
 
@@ -70,7 +70,7 @@ const DoctorDashboard = () => {
       setAppointments(appointmentsData.data || [])
 
       // Load doctor profile
-      const { data: doctors } = await getDoctorById('')
+      const { data: doctors } = await getAllDoctors()
       const doctorData = doctors?.find((d: any) => d.user_id === profile.id)
       if (doctorData) {
         setDoctorProfile(doctorData)
@@ -118,8 +118,10 @@ const DoctorDashboard = () => {
       setAppointmentNotes('')
       setPrescription('')
       setDiagnosis('')
+      alert(`Appointment ${status} successfully!`)
     } catch (error) {
       console.error('Error updating appointment:', error)
+      alert('Failed to update appointment. Please try again.')
     }
   }
 
@@ -129,8 +131,10 @@ const DoctorDashboard = () => {
     try {
       await updateDoctor(doctorProfile.id, { is_online: isOnline })
       setDoctorProfile({ ...doctorProfile, is_online: isOnline })
+      alert(`You are now ${isOnline ? 'online' : 'offline'}`)
     } catch (error) {
       console.error('Error updating online status:', error)
+      alert('Failed to update status. Please try again.')
     }
   }
 
@@ -167,7 +171,7 @@ const DoctorDashboard = () => {
               </Avatar>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Dr. {profile.full_name}</h1>
-                <p className="text-gray-600">{doctorProfile?.specialization?.name}</p>
+                <p className="text-gray-600">{doctorProfile?.specialization}</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -540,7 +544,7 @@ const DoctorDashboard = () => {
                 <CardContent className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-700">Specialization</label> 
-                    <p className="text-sm text-gray-900">{doctorProfile?.specialization?.name}</p>
+                    <p className="text-sm text-gray-900">{doctorProfile?.specialization}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">Qualification</label>
@@ -580,7 +584,7 @@ const DoctorDashboard = () => {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">City</label>
-                    <p className="text-sm text-gray-900">{profile.city}</p>
+                    <p className="text-sm text-gray-900">{doctorProfile?.city}</p>
                   </div>
                 </CardContent>
               </Card>

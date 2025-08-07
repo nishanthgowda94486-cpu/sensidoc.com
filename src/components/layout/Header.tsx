@@ -19,6 +19,7 @@ const Header = () => {
 
   const handleSignOut = async () => {
     await signOut()
+    window.location.href = '/'
   }
 
   const navItems = [
@@ -30,6 +31,15 @@ const Header = () => {
     { name: 'Contact', href: '/contact' },
   ]
 
+  const getDashboardLink = () => {
+    if (!profile) return '/dashboard'
+    switch (profile.role) {
+      case 'admin': return '/admin/dashboard'
+      case 'doctor': return '/doctor/dashboard'
+      case 'patient': return '/dashboard'
+      default: return '/dashboard'
+    }
+  }
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -68,7 +78,7 @@ const Header = () => {
           <div className="flex items-center space-x-4">
             {profile ? (
               <div className="flex items-center space-x-4">
-                <Link to="/dashboard">
+                <Link to={getDashboardLink()}>
                   <Button variant="outline" size="sm">
                     <User className="h-4 w-4 mr-2" />
                     Dashboard
@@ -87,7 +97,7 @@ const Header = () => {
                       <div className="text-gray-500">{profile.email}</div>
                     </div>
                     <Link
-                      to="/dashboard"
+                      to={getDashboardLink()}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <Settings className="h-4 w-4 mr-2" />
@@ -109,7 +119,7 @@ const Header = () => {
                       <LogOut className="h-4 w-4 mr-2" />
                       Sign Out
                     </button>
-                    <div className="text-xs text-blue-600 capitalize">{profile?.role}</div>
+                    <div className="px-4 py-2 text-xs text-blue-600 capitalize border-t">{profile?.role}</div>
                   </div>
                 </div>
               </div>

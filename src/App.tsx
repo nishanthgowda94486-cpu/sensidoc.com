@@ -17,6 +17,7 @@ import TermsOfService from '@/pages/legal/TermsOfService'
 import PrivacyPolicy from '@/pages/legal/PrivacyPolicy'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
 import DoctorDashboard from '@/pages/doctor/DoctorDashboard'
+import PatientDashboard from '@/pages/patient/PatientDashboard'
 import AuthProvider from '@/components/AuthProvider'
 
 function App() {
@@ -33,6 +34,11 @@ function App() {
               <Route path="/ai-diagnosis" element={<AIDiagnosis />} />
               <Route path="/doctors" element={<Doctors />} />
               <Route path="/drugs" element={<Drugs />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <PatientDashboard />
+                </ProtectedRoute>
+              } />
               <Route path="/admin/dashboard" element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminDashboard />

@@ -1,11 +1,9 @@
 import { useState, useEffect, createContext, useContext } from 'react'
-import { supabase, type Profile, type UserRole, getCurrentProfile } from '@/lib/supabase'
-import type { Session, User } from '@supabase/supabase-js'
+import { supabase, type Profile, type UserRole, getCurrentProfile, getCurrentUser } from '@/lib/supabase'
 
 interface AuthContextType {
-  user: User | null
+  user: any | null
   profile: Profile | null
-  session: Session | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any }>
@@ -24,96 +22,118 @@ export function useAuth() {
 }
 
 export function useAuthProvider() {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<any | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session) 
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchUserProfile(session.user.id)
-      } else {
-        setLoading(false)
-      }
-    })
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session) 
-        setUser(session?.user ?? null)
-        
-        if (session?.user) {
-          await fetchUserProfile(session.user.id)
-        } else {
-          setProfile(null)
-          setLoading(false)
-        }
-      }
-    )
-
-    return () => subscription.unsubscribe()
+    // Check for existing session
+    const currentUser = getCurrentUser()
+    if (currentUser) {
+      setUser(currentUser)
+      setProfile(currentUser)
+      setLoading(false)
+    } else {
+      setLoading(false)
+    }
   }, [])
 
-  const fetchUserProfile = async (userId: string) => {
+  const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await getCurrentProfile()
-
-      if (error) {
-        console.error('Error fetching user profile:', error)
-      } else {
-        setProfile(data)
-        
-        // Update last login 
-        await supabase
-          .from('profiles')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', userId)
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .eq('password_hash', password)
+        .single()
+      
+      if (error || !user) {
+        return { error: { message: 'Invalid email or password' } }
       }
+
+      // Store user in localStorage
+      localStorage.setItem('currentUser', JSON.stringify(user))
+      setUser(user)
+      setProfile(user)
+      
+      return { error: null }
     } catch (error) {
-      console.error('Error fetching user profile:', error)
-    } finally {
-      setLoading(false)
+      return { error: { message: 'Login failed' } }
     }
   }
 
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error }
-  }
-
   const signUp = async (email: string, password: string, userData: any) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userData
+    try {
+      const userId = crypto.randomUUID()
+      
+      const { error } = await supabase
+        .from('users')
+        .insert([{
+          id: userId,
+          email,
+          password_hash: password,
+          full_name: userData.full_name,
+          phone: userData.phone,
+          role: userData.role || 'patient',
+          is_verified: userData.role === 'admin',
+          membership_type: 'free',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+      
+      if (error) {
+        return { error }
       }
-    })
-    return { error }
+
+      // If doctor, create doctor profile
+      if (userData.role === 'doctor') {
+        await supabase
+          .from('doctors')
+          .insert([{
+            id: crypto.randomUUID(),
+            user_id: userId,
+            specialization: userData.specialization || 'General Medicine',
+            experience_years: parseInt(userData.experienceYears) || 1,
+            qualification: userData.qualification || 'MBBS',
+            license_number: userData.licenseNumber || `LIC${Date.now()}`,
+            consultation_fee: 500,
+            city: userData.city || 'Mumbai',
+            hospital_name: userData.hospitalName,
+            bio: userData.bio,
+            is_verified: false,
+            is_online: false,
+            rating: 0,
+            total_consultations: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }])
+      }
+      
+      return { error: null }
+    } catch (error) {
+      return { error }
+    }
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    localStorage.removeItem('currentUser')
+    setUser(null)
+    setProfile(null)
   }
 
   const updateProfile = async (data: Partial<Profile>) => {
     if (!user) return { error: new Error('No user logged in') }
 
     const { error } = await supabase 
-      .from('profiles')
+      .from('users')
       .update({ ...data, updated_at: new Date().toISOString() })
       .eq('id', user.id)
 
     if (!error) {
-      setProfile(prev => prev ? { ...prev, ...data } : null)
+      const updatedUser = { ...user, ...data }
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser))
+      setUser(updatedUser)
+      setProfile(updatedUser)
     }
 
     return { error }
@@ -122,7 +142,6 @@ export function useAuthProvider() {
   return {
     user, 
     profile,
-    session,
     loading,
     signIn,
     signUp,
